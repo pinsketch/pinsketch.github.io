@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PinSketch · Breadboard Circuit Simulator</title>
+<meta name="description" content="Learn electronics and digital logic on a virtual breadboard: gates, ICs, adders, Arduino and ESP8266, all in your browser.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body class="landing">
+  <nav class="lp-nav">
+    <a class="brand" href="index.html"><span class="logo">⚡</span><span>Pin<b>Sketch</b></span></a>
+    <div class="grow"></div>
+    <a class="lnk" href="tutorials.html">🎬 Tutorials</a>
+    <a class="lnk" href="beginner.html">Beginner</a>
+    <a class="lnk" href="advanced.html">Advanced</a>
+  </nav>
+
+  <section class="hero">
+    <div>
+      <h1>Build circuits on a <span>virtual breadboard</span></h1>
+      <p class="lead">PinSketch is a free circuit simulator for students. Wire up batteries, bulbs and logic gates, then move on to real 74HC chips, binary adders, <b>Arduino UNO</b> and <b>ESP8266 Wi-Fi</b> projects. No install needed.</p>
+      <div class="cta">
+        <a class="btn green" href="beginner.html">🟢 Start Beginner Lab</a>
+        <a class="btn orange" href="advanced.html">🔴 Open Advanced Lab</a>
+        <a class="btn ghost" href="tutorials.html">🎬 Watch video tutorials</a>
+      </div>
+    </div>
+    <div class="hero-art" aria-hidden="true">
+      <svg viewBox="0 0 520 300">
+        <rect width="520" height="300" rx="12" fill="#f4f1ea"/>
+        <path d="M20,14 H500" stroke="#2563eb" stroke-width="2"/><path d="M20,52 H500" stroke="#dc2626" stroke-width="2"/>
+        <path d="M20,250 H500" stroke="#dc2626" stroke-width="2"/><path d="M20,288 H500" stroke="#2563eb" stroke-width="2"/>
+        <rect x="10" y="138" width="500" height="26" fill="#e7e2d6"/>
+        <g fill="#3f3a31" id="holes"></g>
+        <rect x="150" y="122" width="132" height="58" rx="4" fill="#1f2937"/><path d="M150,140 a8,8 0 0 1 0,22" fill="#0b0f17"/>
+        <text x="216" y="156" fill="#f1f5f9" font-family="monospace" font-size="15" font-weight="700" text-anchor="middle">74HC283</text>
+        <rect x="40" y="122" width="76" height="58" rx="3" fill="#dc2626"/>
+        <g fill="#f8fafc"><rect x="48" y="130" width="12" height="18" rx="2"/><rect x="66" y="148" width="12" height="18" rx="2"/><rect x="84" y="130" width="12" height="18" rx="2"/><rect x="102" y="148" width="0" height="0"/></g>
+        <g><circle cx="340" cy="82" r="22" fill="#ef4444" opacity=".35"/><path d="M330,96 V78 a10,10 0 0 1 20,0 V96 Z" fill="#ef4444"/>
+          <circle cx="385" cy="82" r="22" fill="#facc15" opacity=".35"/><path d="M375,96 V78 a10,10 0 0 1 20,0 V96 Z" fill="#facc15"/>
+          <path d="M420,96 V78 a10,10 0 0 1 20,0 V96 Z" fill="#22c55e" opacity=".5"/>
+          <circle cx="475" cy="82" r="22" fill="#38bdf8" opacity=".35"/><path d="M465,96 V78 a10,10 0 0 1 20,0 V96 Z" fill="#38bdf8"/></g>
+        <g fill="none" stroke-width="5" stroke-linecap="round">
+          <path d="M60,200 Q120,240 170,200" stroke="#f97316"/><path d="M90,110 Q150,60 196,110" stroke="#2563eb"/>
+          <path d="M250,200 Q300,230 340,100" stroke="#16a34a"/><path d="M270,110 Q330,40 385,100" stroke="#eab308"/>
+          <path d="M230,200 Q380,270 475,100" stroke="#9333ea"/><path d="M160,110 V52" stroke="#dc2626"/><path d="M270,200 V288" stroke="#3f3f46"/>
+        </g>
+      </svg>
+    </div>
+  </section>
+
+  <section class="levelcards">
+    <div class="lcard beg">
+      <span class="tag">Beginner</span>
+      <h2>Electricity &amp; Logic Basics</h2>
+      <p class="muted">Simple, friendly parts that work without complicated wiring. Wires change color to show HIGH and LOW signals.</p>
+      <ul>
+        <li>Battery, bulbs, LEDs</li><li>Switches &amp; push buttons</li>
+        <li>Buzzer &amp; DC motor</li><li>AND, OR, NOT, NAND, NOR, XOR, XNOR</li>
+        <li>16×2 LCD &amp; 7-segment display</li><li>Automatic truth tables</li>
+        <li>Series vs. parallel circuits</li><li>Half adder &amp; full adder</li><li>NAND builds every gate</li><li>12 video lessons</li>
+      </ul>
+      <a class="btn green" href="beginner.html">Open Beginner Lab →</a>
+    </div>
+    <div class="lcard adv">
+      <span class="tag">Advanced</span>
+      <h2>Breadboard, ICs &amp; Microcontrollers</h2>
+      <p class="muted">A real breadboard workflow: power rails, DIP chips, pinouts, resistors, and code running on microcontrollers.</p>
+      <ul>
+        <li>Full &amp; half breadboards</li><li>74HC00/02/04/08/32/86 chips</li>
+        <li>2-bit adder from gates</li><li>4-bit adder (74HC283)</li>
+        <li>BCD → 7-seg (CD4511)</li><li>SR latch memory</li>
+        <li>Arduino UNO + C++ code</li><li>ESP8266 Wi-Fi web server</li>
+        <li>I2C LCD, PWM, potentiometer</li><li>Serial Monitor commands</li><li>Binary counter &amp; dice</li><li>20 video lessons</li>
+      </ul>
+      <a class="btn orange" href="advanced.html">Open Advanced Lab →</a>
+    </div>
+  </section>
+
+  <section class="features">
+    <div class="feat"><div class="ic">🔍</div><h4>See inside the board</h4><p>Hover any breadboard hole to light up every hole it's connected to.</p></div>
+    <div class="feat"><div class="ic">⚡</div><h4>Live simulation</h4><p>Bulbs dim in series, LEDs only conduct one way, and shorts are flagged instantly.</p></div>
+    <div class="feat"><div class="ic">💻</div><h4>Real Arduino code</h4><p>Write setup() and loop() in C++. digitalWrite, analogRead, Serial, LCD and Wi-Fi all work.</p></div>
+    <div class="feat"><div class="ic">🎓</div><h4>Guided lessons</h4><p>Each demo comes with an explanation, pinouts and truth tables to try.</p></div>
+  </section>
+
+  <section class="steps">
+    <h2 style="padding-left:4px">How it works</h2>
+    <ol>
+      <li><b>Pick a level.</b> Beginner for gates and basic circuits, Advanced for breadboards and microcontrollers.</li>
+      <li><b>Open a demo</b> from the 🎓 Demos tab, or drag parts from 🧩 Parts onto the canvas.</li>
+      <li><b>Wire it up.</b> Drag from one pin or hole to another. Click switches and hold buttons.</li>
+      <li><b>Experiment.</b> Edit code, check truth tables, and save your circuits to a file.</li>
+    </ol>
+  </section>
+
+  <footer class="lp-foot">PinSketch · runs entirely in your browser · works offline</footer>
+
+<script>
+  // decorative breadboard holes in the hero image
+  (function () {
+    var g = document.getElementById('holes'), s = '';
+    for (var c = 0; c < 24; c++) {
+      var x = 30 + c * 20;
+      [14, 52, 250, 288].forEach(function (y) { s += '<rect x="' + (x - 3) + '" y="' + (y - 13) + '" width="6" height="6" rx="1"/>'; });
+      for (var r = 0; r < 5; r++) { s += '<rect x="' + (x - 3) + '" y="' + (70 + r * 13) + '" width="6" height="6" rx="1"/>'; s += '<rect x="' + (x - 3) + '" y="' + (178 + r * 13) + '" width="6" height="6" rx="1"/>'; }
+    }
+    g.innerHTML = s;
+  })();
+</script>
+</body>
+</html>

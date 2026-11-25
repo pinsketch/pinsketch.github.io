@@ -1,0 +1,23 @@
+# OS / editor files
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp
+*~
+
+# Video-maker working files (recreated by tools/video-maker/make_all.sh)
+tools/video-maker/venv/
+tools/video-maker/voices/
+tools/video-maker/audio/
+tools/video-maker/frames/
+tools/video-maker/lessons.json
+tools/video-maker/chrome-prof-*/
+__pycache__/
+*.pyc
+node_modules/
+
+# Logs and temporary files
+*.log
+*.tmp

@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PinSketch · Video Tutorials</title>
+<meta name="description" content="Short narrated video tutorials: breadboards, logic gates, ICs, adders, LCDs, counters, Arduino and ESP8266 in PinSketch.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body class="landing">
+  <nav class="lp-nav">
+    <a class="brand" href="index.html"><span class="logo">⚡</span><span>Pin<b>Sketch</b></span></a>
+    <div class="grow"></div>
+    <a class="lnk" href="tutorials.html">🎬 Tutorials</a>
+    <a class="lnk" href="beginner.html">Beginner</a>
+    <a class="lnk" href="advanced.html">Advanced</a>
+  </nav>
+
+  <main class="tut-wrap">
+    <h1>🎬 Video tutorials</h1>
+    <p class="lead"><b id="vcount"></b> short narrated lessons, under a minute each. Watch how a circuit is built step by step, then press <b>Open in simulator</b> to try it yourself.</p>
+    <section class="tut-sec"><h2><span class="lcard beg" style="padding:0;border:0;background:none"><span class="tag">Beginner</span></span> Electricity &amp; logic basics</h2><div class="tut-grid" id="gridBeginner"></div></section>
+    <section class="tut-sec"><h2><span class="lcard adv" style="padding:0;border:0;background:none"><span class="tag">Advanced</span></span> Breadboard &amp; logic ICs</h2><div class="tut-grid" id="gridIC"></div></section>
+    <section class="tut-sec"><h2><span class="lcard adv" style="padding:0;border:0;background:none"><span class="tag">Advanced</span></span> Arduino UNO</h2><div class="tut-grid" id="gridUno"></div></section>
+    <section class="tut-sec"><h2><span class="lcard adv" style="padding:0;border:0;background:none"><span class="tag">Advanced</span></span> ESP8266 Wi-Fi</h2><div class="tut-grid" id="gridEsp"></div></section>
+  </main>
+
+  <div class="vmodal" id="vmodal">
+    <div class="vmodal-box">
+      <div class="vtitle"><span id="vtitle"></span><span class="grow"></span><a class="btn orange" id="vopen" href="#" style="padding:7px 14px;font-size:14px">Open in simulator →</a><button class="tbtn" id="vclose">✕ Close</button></div>
+      <video id="vplayer" controls playsinline></video>
+    </div>
+  </div>
+
+  <footer class="lp-foot">PinSketch · runs entirely in your browser · works offline</footer>
+
+<script src="js/videos.js"></script>
+<script>
+  (function () {
+    var esc = function (s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+    var simLink = function (v) { return (v.level === 'beginner' ? 'beginner.html' : 'advanced.html') + '#demo=' + v.id; };
+    var groups = { gridBeginner: function (v) { return v.level === 'beginner'; }, gridIC: function (v) { return /^a-/.test(v.id); },
+      gridUno: function (v) { return /^u-/.test(v.id); }, gridEsp: function (v) { return /^e-/.test(v.id); } };
+    Object.keys(groups).forEach(function (gid) {
+      var grid = document.getElementById(gid);
+      grid.innerHTML = VIDEOS.filter(groups[gid]).map(function (v) {
+        return '<article class="tcard">' +
+          '<button class="tthumb" data-v="' + v.id + '" style="background-image:url(videos/' + v.id + '.jpg)" aria-label="Play ' + esc(v.title) + '"><span class="tdur">' + esc(v.dur) + '</span></button>' +
+          '<div class="tbody"><span class="tnum">Lesson ' + v.num + '</span><h3>' + esc(v.title) + '</h3><p>' + esc(v.desc) + '</p>' +
+          '<div class="tact"><button class="tbtn run" data-v="' + v.id + '">▶ Play</button><a class="tbtn" href="' + simLink(v) + '">Open in simulator →</a></div></div></article>';
+      }).join('');
+    });
+    document.getElementById('vcount').textContent = VIDEOS.length;
+    var modal = document.getElementById('vmodal'), player = document.getElementById('vplayer');
+    function open(id) {
+      var v = VIDEOS.find(function (x) { return x.id === id; }); if (!v) return;
+      document.getElementById('vtitle').textContent = (v.level === 'beginner' ? 'Beginner' : 'Advanced') + ' ' + v.num + ' · ' + v.title;
+      document.getElementById('vopen').href = simLink(v);
+      player.poster = 'videos/' + v.id + '.jpg'; player.src = 'videos/' + v.id + '.mp4';
+      modal.classList.add('open'); player.play().catch(function () {});
+    }
+    function close() { player.pause(); player.removeAttribute('src'); player.load(); modal.classList.remove('open'); }
+    document.addEventListener('click', function (e) { var b = e.target.closest('[data-v]'); if (b) open(b.dataset.v); });
+    document.getElementById('vclose').addEventListener('click', close);
+    modal.addEventListener('click', function (e) { if (e.target === modal) close(); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+  })();
+</script>
+</body>
+</html>
