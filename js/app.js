@@ -7,6 +7,38 @@ const $$ = (s, r) => [...(r || document).querySelectorAll(s)];
 const WIRE_COLORS = ['#dc2626', '#3f3f46', '#2563eb', '#16a34a', '#eab308', '#f97316', '#9333ea', '#e5e7eb', '#0891b2', '#db2777'];
 const CAT_ORDER = ['Boards', 'Microcontrollers', 'Power', 'Inputs', 'Outputs', 'Displays', 'Logic Gates', 'ICs', 'Passive', 'Misc'];
 
+/* ---------- buzzer sound (Web Audio) ---------- */
+const Sound = {
+  ctx: null, voices: new Map(), on: true, mcuHz: null, mcuOwner: null,
+  unlock() {
+    if (!this.on) return;
+    try {
+      if (!this.ctx) { const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return; this.ctx = new AC(); }
+      if (this.ctx.state === 'suspended') this.ctx.resume();
+    } catch (e) { /* no audio */ }
+  },
+  // list: [{ id, hz, vol }] — one voice per sounding buzzer
+  update(list) {
+    const ctx = this.ctx; if (!ctx) return;
+    const t = ctx.currentTime, seen = new Set();
+    if (this.on) for (const s of list.slice(0, 6)) {
+      seen.add(s.id);
+      let v = this.voices.get(s.id);
+      if (!v) {
+        const o = ctx.createOscillator(), g = ctx.createGain();
+        o.type = 'square'; o.frequency.value = s.hz; g.gain.value = 0;
+        o.connect(g); g.connect(ctx.destination); o.start();
+        v = { o, g, hz: s.hz, vol: -1 }; this.voices.set(s.id, v);
+      }
+      if (v.hz !== s.hz) { v.o.frequency.setTargetAtTime(s.hz, t, 0.004); v.hz = s.hz; }
+      if (v.vol !== s.vol) { v.g.gain.setTargetAtTime(s.vol, t, 0.004); v.vol = s.vol; }
+    }
+    for (const [id, v] of this.voices) if (!seen.has(id)) {
+      v.g.gain.setTargetAtTime(0, t, 0.006); v.o.stop(t + 0.08); this.voices.delete(id);
+    }
+  },
+};
+
 function boxOf(c) {
   const d = PARTS[c.type];
   const b = typeof d.box === 'function' ? d.box(c) : (d.box || [-20, -20, 20, 20]);
@@ -79,6 +111,7 @@ class App {
       <span class="lbl">Wire</span><div class="swatches" id="swatches">${WIRE_COLORS.map(c => `<button class="sw" data-color="${c}" style="background:${c}" title="${c}"></button>`).join('')}</div>
       <label class="chk" title="Color wires by logic level: red = HIGH, blue = LOW"><input type="checkbox" id="chkLevels" ${this.showLevels ? 'checked' : ''}> Signals</label>
       <label class="chk" title="Animate the current flowing through the circuit (from + to −)"><input type="checkbox" id="chkFlow" checked> Current</label>
+      <button class="tbtn" id="btnSound" title="Turn buzzer sound on or off"></button>
       <span class="sep"></span>
       <button class="tbtn" data-cmd="zoomout" title="Zoom out">−</button>
       <span id="zoomLbl" class="lbl zl">100%</span>
@@ -245,6 +278,18 @@ class App {
     $('#chkFlow').addEventListener('change', e => { this.showFlow = e.target.checked; this._flowSig = null; this.renderFlow(); });
     $('#btnHelp').addEventListener('click', () => $('#help').classList.add('open'));
     $('#btnEdit').addEventListener('click', () => this.setEdit(!this.edit));
+    try { Sound.on = localStorage.getItem('pinsketch-sound') !== '0'; } catch (e) { /* ignore */ }
+    const sndLbl = () => { $('#btnSound').innerHTML = Sound.on ? '🔊 Sound' : '🔇 Muted'; $('#btnSound').classList.toggle('off', !Sound.on); };
+    sndLbl();
+    $('#btnSound').addEventListener('click', () => {
+      Sound.on = !Sound.on; try { localStorage.setItem('pinsketch-sound', Sound.on ? '1' : '0'); } catch (e) { /* ignore */ }
+      if (Sound.on) Sound.unlock(); else Sound.update([]);
+      sndLbl(); this.toast(Sound.on ? '🔊 Buzzer sound ON' : '🔇 Buzzer sound OFF');
+    });
+    // browsers only allow audio after a click or key press
+    const unlock = () => Sound.unlock();
+    window.addEventListener('pointerdown', unlock, true); window.addEventListener('keydown', unlock, true);
+    document.addEventListener('visibilitychange', () => { if (document.hidden) Sound.update([]); });
     this.setEdit(this.edit, true);
     $('#helpClose').addEventListener('click', () => $('#help').classList.remove('open'));
     $('#help').addEventListener('click', e => { if (e.target.id === 'help') $('#help').classList.remove('open'); });
@@ -538,7 +583,19 @@ class App {
     if (this.dirty) this.solve();
     if (S.hasCaps() || S.av) { S.analogStep(dt); this.solve(); } // capacitors: advance real time
     if (this.needVis) this.refreshVisuals();
+    this.updateSound();
     requestAnimationFrame(() => this.frame());
+  }
+  updateSound() {
+    if (!Sound.ctx) return;
+    const list = [], mcuHz = Sound.mcuOwner && Sound.mcuOwner.alive ? Sound.mcuHz : null;
+    for (const c of this.circ.comps) {
+      const d = PARTS[c.type];
+      if (!d.sound || !c.vis) continue;
+      const s = d.sound(c); if (!s) continue;
+      list.push({ id: c.id, hz: mcuHz || s.hz, vol: s.vol });
+    }
+    Sound.update(list);
   }
   refreshVisuals() {
     this.needVis = false;

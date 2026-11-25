@@ -33,6 +33,7 @@ body.sim { overflow: hidden; }
 .tbtn.run:hover { background: #166534; }
 .tbtn.stop { background: #450a0a; border-color: #991b1b; color: #fee2e2; }
 .tbtn.danger { border-color: #7f1d1d; color: #fecaca; }
+.tbtn.off { color: #94a3b8; border-style: dashed; }
 .sep { width: 1px; height: 22px; background: var(--line); margin: 0 4px; }
 .lbl { color: var(--muted); font-size: 12.5px; }
 .zl { min-width: 40px; text-align: center; }

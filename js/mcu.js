@@ -217,8 +217,12 @@ class MCU {
           A.digitalWrite(cp, 0); app.ensureSolved();
         }
       },
-      tone(p, f, d) { A.pinMode(p, 'OUTPUT'); A.digitalWrite(p, 1); if (d) setTimeout(() => { if (self.alive) A.digitalWrite(p, 0); }, d); },
-      noTone(p) { A.digitalWrite(p, 0); },
+      tone(p, f, d) {
+        A.pinMode(p, 'OUTPUT'); A.digitalWrite(p, 1);
+        if (typeof Sound !== 'undefined') { Sound.mcuHz = Math.max(31, Math.min(8000, +f || 1000)); Sound.mcuOwner = self; }
+        if (d) setTimeout(() => { if (self.alive) { A.digitalWrite(p, 0); if (typeof Sound !== 'undefined') Sound.mcuHz = null; } }, d);
+      },
+      noTone(p) { A.digitalWrite(p, 0); if (typeof Sound !== 'undefined') Sound.mcuHz = null; },
       delay: ms => self.sleep(ms),
       delayMicroseconds: us => self.sleep(us / 1000),
       millis: () => Math.floor(performance.now() - t0),

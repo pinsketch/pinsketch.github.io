@@ -287,6 +287,10 @@ defPart('probe', {
 
 defPart('buzzer', {
   name: 'Buzzer', cat: 'Outputs', box: [-12, -52, 34, 4],
+  defaults: { hz: 2000 },
+  props: [{ key: 'hz', label: 'Pitch (Hz)', type: 'select', options: [440, 880, 1000, 2000, 3000] }],
+  // real piezo buzzers beep at about 2 kHz; louder when more current flows
+  sound: c => (c.vis.b > 0 && !c.vis.burnt ? { hz: +c.props.hz || 2000, vol: 0.05 * Math.min(1, 0.35 + c.vis.b) } : null),
   pins: [{ n: 'P', x: 0, y: 0, label: '+' }, { n: 'N', x: 1, y: 0, label: '−' }],
   loads: () => [{ a: 'P', b: 'N', dir: true, kind: 'light' }],
   analog: () => [{ t: 'D', a: 'P', b: 'N', vf: 1, rs: 150, load: true, ifull: 0.01 }],

@@ -20,6 +20,7 @@ A breadboard circuit simulator for teaching electronics and digital logic. It ru
 - Signals are HIGH (1), LOW (0), floating, or short-circuit.
 - Unconnected inputs read LOW.
 - Animated yellow dots show current flowing from + to −, and white dashes show logic signals.
+- Buzzers really beep (Web Audio, about 2 kHz, pitch editable, Arduino `tone()` sets the pitch). The 🔊 button mutes them.
 - **Edit mode** (E): ON to place parts and draw wires, OFF (play mode) to only use switches, buttons and knobs.
 - Every net carries a real voltage. Batteries can be 1.5–24 V, bulbs burn out above their rating, and 74HC chips stop above 6 V.
 - Capacitors use a small analog RC solver (backward Euler), so RC delays, fading LEDs and NE555 timing follow the real formulas.
