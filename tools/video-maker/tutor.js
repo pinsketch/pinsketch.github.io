@@ -85,6 +85,7 @@
       opts = opts || {};
       const a = this.app, d = DEMOS.find(x => x.id === demoId);
       a.stopAll(true);
+      if (a.setEdit) a.setEdit(true, true);
       this.final = buildDemo(d).toJSON();
       const num = id => parseInt(String(id).slice(1)) || 0;
       this.order = [...this.final.comps.map(c => ({ k: 'c', o: c })), ...this.final.wires.map(w => ({ k: 'w', o: w }))].sort((p, q) => num(p.o.id) - num(q.o.id));
@@ -340,6 +341,14 @@
       await this.clickEl(inp, ms * 0.2); inp.value = '';
       for (const ch of text) { inp.value += ch; await sleep(ms * 0.45 / text.length); }
       await this.clickEl($('#btnSerSend'), ms * 0.2);
+    }
+    async setProp(c, key, value, ms) { // change a property through the Properties panel
+      if (typeof c === 'string') c = this.comp(c);
+      await this.select(c, ms * 0.25); await this.tab('props', ms * 0.2);
+      const el = $(`#props [data-prop="${key}"]`); if (!el) return;
+      await this.clickEl(el, ms * 0.2);
+      el.value = String(value); el.dispatchEvent(new Event(el.tagName === 'SELECT' ? 'change' : 'input'));
+      await sleep(ms * 0.1);
     }
     async espTap(frac, path, ms) { // tap a spot in the virtual phone and navigate
       const fr = $('#browser'), r = fr.getBoundingClientRect();

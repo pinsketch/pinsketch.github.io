@@ -262,3 +262,12 @@ body.landing { overflow: auto; background: radial-gradient(1200px 600px at 80% -
 .fl-cur { width: 22px; height: 6px; background: radial-gradient(circle, #fde047 2.5px, transparent 3px) 0 0 / 8px 6px repeat-x; display: inline-block; }
 .fl-sig { width: 22px; height: 2px; background: repeating-linear-gradient(90deg, #fff 0 4px, transparent 4px 9px); display: inline-block; }
 @media (prefers-reduced-motion: reduce) { .flow, .flow-o, .sigflow { animation-duration: 4s !important; } }
+
+/* ---------- edit / play mode ---------- */
+.editbtn { border-color: #475569; }
+.editbtn.on { background: #7c2d12; border-color: #f97316; color: #ffedd5; }
+.stage.editing { box-shadow: inset 0 0 0 2px rgba(249, 115, 22, .55); }
+.left.locked .pitem { opacity: .55; }
+.left.locked #palette::before { content: "👆 Play mode: clicking or dragging a part turns ✏️ Edit mode on"; display: block; font-size: 11.5px; color: #fdba74; background: #2a1c12; border: 1px solid #7c2d12; border-radius: 8px; padding: 6px 8px; margin-top: 8px; }
+.toast { position: absolute; left: 50%; bottom: 40px; transform: translateX(-50%) translateY(10px); background: rgba(2, 6, 23, .92); border: 1px solid #f97316; color: #fff; padding: 8px 14px; border-radius: 10px; font-size: 13px; opacity: 0; pointer-events: none; transition: .2s; z-index: 6; }
+.toast.show { opacity: 1; transform: translateX(-50%); }

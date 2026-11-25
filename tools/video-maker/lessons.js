@@ -161,6 +161,62 @@ const LESSONS = [
 
   /* ============================ ADVANCED ============================ */
   {
+    id: 'b-volts', level: 'beginner', num: 13, title: 'Voltage: 3.3 V, 5 V, 12 V', sub: 'Too little, just right, too much',
+    steps: [
+      { intro: true, say: 'Lesson thirteen: voltage, and what happens when there is too much of it.' },
+      { say: 'Voltage is how hard electricity pushes, measured in volts. Here are three identical circuits, each with a five volt bulb.', cap: 'Voltage = how hard electricity pushes, measured in volts (V). Three circuits, each with a 5 V bulb.', do: (T, D) => T.all(D * 0.9) },
+      { say: 'With a three point three volt battery, there is not enough push, so the bulb glows dimly.', cap: '3.3 V: not enough push → the bulb glows dim.', do: async (T, D) => { await T.wait(D * 0.1); await T.toggle(byX(T, 'switch')[0]); } },
+      { say: 'With five volts, the bulb gets exactly its rated voltage, and it shines brightly.', cap: '5 V: exactly the rated voltage → bright.', do: async (T, D) => { await T.wait(D * 0.1); await T.toggle(byX(T, 'switch')[1]); } },
+      { say: 'But twelve volts is far too much. The bulb burns out!', cap: '12 V: far too much → the bulb burns out! 💥', do: async (T, D) => { await T.wait(D * 0.15); await T.toggle(byX(T, 'switch')[2]); } },
+      { say: 'Select a battery, and change its voltage in the properties tab. You can choose from one and a half up to twenty four volts.', cap: 'Select a battery to change its voltage in Properties: 1.5, 3.3, 5, 9, 12 or 24 V.', do: async (T, D) => { await T.setProp(byX(T, 'battery')[0], 'v', 5, D * 0.8); } },
+    ],
+  },
+  {
+    id: 'b-cap', level: 'beginner', num: 14, title: 'The Capacitor', sub: 'Storing energy',
+    steps: [
+      { intro: true, say: 'Lesson fourteen: the capacitor, a part that stores energy.' },
+      { say: 'A capacitor stores electric charge, like a tiny, very fast rechargeable battery. Its size is measured in microfarads.', cap: 'A capacitor stores charge, like a tiny, very fast rechargeable battery. Size: microfarads (µF).', do: (T, D) => T.next(3, D) },
+      { say: 'Add a resistor and an LED, and wire everything up. The capacitor sits between the button and ground.', do: (T, D) => T.next(8, D) },
+      { say: 'Hold the button. The capacitor charges up to five volts in an instant, and the LED lights.', do: async (T, D) => { await T.press('Charge', D * 0.6); } },
+      { say: 'Now let go. The battery is disconnected, but the LED stays on, powered by the capacitor, and slowly fades as it empties.', do: async (T, D) => { T.highlightComp(T.comp('capacitor'), 'energy store', 10); await T.wait(D * 0.8); T.clearHighlights(); } },
+      { say: 'The blue bar shows how much charge is left. A bigger capacitor, or a bigger resistor, makes the light last longer.', do: async (T, D) => { await T.press('Charge', D * 0.3); } },
+    ],
+  },
+  {
+    id: 'b-rc', level: 'beginner', num: 15, title: 'RC Timer: Making a Delay', sub: 'Resistor + capacitor = time',
+    steps: [
+      { intro: true, say: 'Lesson fifteen: an R C timer, which makes a delay.', cap: 'Lesson 15: an RC timer, which makes a delay.' },
+      { say: 'A resistor and a capacitor together make a timer. The resistor slows down how fast the capacitor fills up.', do: (T, D) => T.next(4, D) },
+      { say: 'A lamp watches the capacitor voltage, and a second button can empty it.', do: (T, D) => T.next(9, D) },
+      { say: 'Turn on the switch. The capacitor voltage rises slowly. Watch the number on the capacitor.', do: async (T, D) => { await T.toggle('Start'); await T.hover(18, 5, D * 0.3); } },
+      { say: 'After about three seconds, it passes half of the supply voltage, and the lamp switches on. That is our delay.', do: async (T, D) => { await T.wait(D * 0.8); T.unhover(); } },
+      { say: 'The time constant is R times C: ten kilo ohms times four hundred seventy microfarads, about four point seven seconds.', cap: 'Time constant τ = R × C = 10 kΩ × 470 µF ≈ 4.7 s', do: (T, D) => T.wait(D * 0.5) },
+      { say: 'Press discharge to empty the capacitor, and try again with different values.', do: async (T, D) => { await T.press('Discharge', D * 0.4); } },
+    ],
+  },
+  {
+    id: 'b-555', level: 'beginner', num: 16, title: 'The 555 Timer', sub: 'A blinking LED',
+    steps: [
+      { intro: true, say: 'Lesson sixteen: the five five five timer, one of the most famous chips ever made.', cap: 'Lesson 16: the 555 timer, one of the most famous chips ever made.' },
+      { say: 'Place a nine volt battery and the N E five five five chip. Pin one is ground, and pin eight is the supply.', cap: 'A 9 V battery and the NE555. Pin 1 = GND, pin 8 = VCC.', do: async (T, D) => { await T.next(2, D * 0.6); await T.hover(12, 6, D * 0.2); await T.wait(D * 0.15); T.unhover(); } },
+      { say: 'Add two resistors, ten k and forty seven k, a ten microfarad capacitor, and an LED with its resistor.', cap: 'Add R1 = 10k, R2 = 47k, a 10 µF capacitor, and an LED with a 470 Ω resistor.', do: (T, D) => T.next(5, D) },
+      { say: 'Now the wires. The capacitor connects to the trigger and threshold pins, and the output, pin three, drives the LED.', cap: 'Wire it up: the capacitor goes to TRIG (pin 2) and THR (pin 6). OUT (pin 3) drives the LED.', do: (T, D) => T.next(14, D) },
+      { say: 'The LED blinks by itself! The capacitor charges to two thirds of the supply, then discharges to one third, over and over.', cap: 'It blinks by itself! The capacitor charges to ⅔ of the supply, then discharges to ⅓, over and over.', do: async (T, D) => { await T.hover(6, 13, D * 0.3); await T.wait(D * 0.5); T.unhover(); } },
+      { say: 'Change the capacitor to forty seven microfarads, and it blinks about five times slower.', cap: 'Change the capacitor to 47 µF: about 5× slower.', do: async (T, D) => { await T.setProp('capacitor', 'uf', 47, D * 0.7); } },
+    ],
+  },
+  {
+    id: 'b-latch', level: 'beginner', num: 17, title: 'SR Latch: Memory', sub: 'Two NOR gates that remember',
+    steps: [
+      { intro: true, say: 'Lesson seventeen: the latch, the simplest memory circuit.' },
+      { say: 'Two NOR gates feed back into each other. Each output goes to an input of the other gate.', do: (T, D) => T.next(8, D) },
+      { say: 'Two lamps show the outputs, Q and Q bar.', cap: 'Two lamps show the outputs Q and Q̅.', do: (T, D) => T.next(4, D * 0.9) },
+      { say: 'Set S, the set input, to one and then back to zero. Q turns on, and stays on. The circuit remembers!', do: async (T, D) => { await T.toggle('S'); await T.wait(D * 0.3); await T.toggle('S'); } },
+      { say: 'Now set R, the reset input, to one and back. Q turns off, and stays off.', do: async (T, D) => { await T.toggle('R'); await T.wait(D * 0.3); await T.toggle('R'); } },
+      { say: 'Computer memory is built from millions of tiny latches like this one.', do: async (T, D) => { T.highlightComp(T.comps('g_nor')[0], 'memory cell'); await T.wait(D * 0.7); T.clearHighlights(); } },
+    ],
+  },
+  {
     id: 'a-bb', level: 'advanced', num: 1, title: 'How a Breadboard Works', sub: 'Strips, rails and your first LED circuit',
     steps: [
       { intro: true, say: 'Advanced lesson one: how a breadboard works.' },
@@ -430,11 +486,109 @@ const LESSONS = [
       { say: 'Open the Wi-Fi tab, type a message, and press send. Your message appears on the LCD!', do: async (T, D) => { await T.tab('wifi', D * 0.2); await T.wait(D * 0.1); await T.espTap([0.35, 108], '/send?msg=Hello+PinSketch', D * 0.3); } },
     ],
   },
+  {
+    id: 'a-555', level: 'advanced', num: 21, title: 'NE555 Astable Blinker', sub: 'The classic 555 oscillator',
+    steps: [
+      { intro: true, say: 'Advanced lesson twenty one: the N E five five five timer on a breadboard.', cap: 'Advanced lesson 21: the NE555 timer on a breadboard.' },
+      { say: 'Place the five five five across the gap. Pin eight goes to plus, pin one to ground, and pin four, reset, to plus.', cap: 'Pin 8 (VCC) → +, pin 1 (GND) → −, pin 4 (RESET) → +.', do: (T, D) => T.next(6, D) },
+      { say: 'R one connects plus to pin seven, discharge. R two connects pin seven to pin six, threshold. Pins six and two are joined.', cap: 'R1: + → pin 7 (DIS).  R2: pin 7 → pin 6 (THR).  Pin 6 joins pin 2 (TRIG).', do: (T, D) => T.next(5, D) },
+      { say: 'The capacitor goes from the trigger to ground, and the output, pin three, drives an LED through a resistor.', cap: 'C: TRIG → GND.  OUT (pin 3) drives an LED through 470 Ω.', do: (T, D) => T.next(7, D) },
+      { say: 'The LED blinks about one and a half times per second. Hover over the capacitor: its voltage swings between one third and two thirds of five volts.', cap: 'About 1.4 blinks per second. The capacitor swings between ⅓ and ⅔ of 5 V (1.7 V to 3.3 V).', do: async (T, D) => { await T.hover(8, 13, D * 0.25); await T.wait(D * 0.6); T.unhover(); } },
+      { say: 'Use a bigger capacitor, forty seven microfarads, and it becomes about five times slower.', cap: 'C = 47 µF → about 5× slower.', do: async (T, D) => { await T.setProp('capacitor', 'uf', 47, D * 0.7); } },
+    ],
+  },
+  {
+    id: 'a-555mono', level: 'advanced', num: 22, title: 'NE555 One-Shot Timer', sub: 'Monostable mode',
+    steps: [
+      { intro: true, say: 'Advanced lesson twenty two: a one shot timer, using the five five five.', cap: 'Advanced lesson 22: a one-shot timer using the 555.' },
+      { say: 'In monostable mode, discharge and threshold are joined, and charge through a one hundred k resistor.', cap: 'Monostable: DIS and THR joined, charging through a 100k resistor.', do: (T, D) => T.next(9, D) },
+      { say: 'Add a forty seven microfarad capacitor, and a start button on the trigger pin, with a ten k pull up resistor.', cap: 'Add a 47 µF capacitor and a START button on TRIG, with a 10k pull-up resistor.', do: (T, D) => T.next(5, D) },
+      { say: 'The output drives a green LED.', do: (T, D) => T.all(D * 0.9) },
+      { say: 'Press start once. The LED turns on, and the capacitor begins to charge.', do: async (T, D) => { await T.press('START', 300); await T.hover(20, 6, D * 0.3); } },
+      { say: 'After one point one times R times C, about five seconds, the LED switches itself off.', cap: 'After t = 1.1 × R × C ≈ 5 s, the LED switches itself off.', do: async (T, D) => { await T.wait(D * 0.9); T.unhover(); } },
+    ],
+  },
+  {
+    id: 'a-4017', level: 'advanced', num: 23, title: '555 + CD4017 LED Chaser', sub: 'A running light',
+    steps: [
+      { intro: true, say: 'Advanced lesson twenty three: an LED chaser, using a five five five and a C D forty seventeen.', cap: 'Advanced lesson 23: an LED chaser with a 555 and a CD4017.' },
+      { say: 'On the left, a five five five makes clock pulses, just like in the blinker lesson.', cap: 'On the left, a 555 makes clock pulses, just like the blinker.', do: (T, D) => T.next(14, D, true) },
+      { say: 'The C D forty seventeen is a decade counter. On every clock pulse, its single high output moves one step.', cap: 'The CD4017 decade counter: on every clock pulse, its single HIGH output moves one step.', do: (T, D) => T.next(6, D) },
+      { say: 'Five LEDs show outputs Q zero to Q four. Q five is wired back to reset, so the counter restarts after five steps.', cap: 'LEDs on Q0–Q4. Q5 is wired to RESET, so it restarts after 5 steps.', do: (T, D) => T.all(D * 0.9) },
+      { say: 'Watch the light run from left to right, again and again.', do: (T, D) => T.wait(D * 0.5) },
+    ],
+  },
+  {
+    id: 'a-counter', level: 'advanced', num: 24, title: '74HC393 Binary Counter', sub: 'A hardware counter',
+    steps: [
+      { intro: true, say: 'Advanced lesson twenty four: a binary counter chip.' },
+      { say: 'Again, a five five five provides the clock pulses.', cap: 'Again, a 555 provides the clock pulses.', do: (T, D) => T.next(14, D, true) },
+      { say: 'The seventy four H C three nine three counts falling edges of the clock. Its reset pins are tied to ground.', cap: 'The 74HC393 counts falling clock edges. Its reset (MR) pins are tied to GND.', do: (T, D) => T.next(6, D) },
+      { say: 'Four LEDs show the count in binary: eight, four, two and one.', cap: 'Four LEDs show the count in binary: 8, 4, 2, 1.', do: (T, D) => T.all(D * 0.9) },
+      { say: 'Zero, one, one zero, one one, one zero zero, and so on. Each output runs at half the speed of the one before it.', cap: '0, 1, 10, 11, 100… Each output runs at half the speed of the one before it.', do: (T, D) => T.wait(D * 0.5) },
+    ],
+  },
+  {
+    id: 'a-crystal', level: 'advanced', num: 25, title: 'Crystal Timer: Exactly 1 Hz', sub: '32.768 kHz crystal + CD4060 + 74HC74',
+    steps: [
+      { intro: true, say: 'Advanced lesson twenty five: a crystal timer that ticks exactly once per second.' },
+      { say: 'The C D forty sixty contains an oscillator, and a fourteen stage counter.', cap: 'The CD4060 contains an oscillator and a 14-stage counter.', do: async (T, D) => { T.reorder([0, 1, 2, 3, 4, 5, 6, 7, 8, 16, 17, 18, 19, 20, 21, 24, 25, 26, 9, 10, 11, 12, 13, 14, 15, 22, 23, 27, 28, 29, 30]); await T.next(6, D); } },
+      { say: 'A thirty two point seven six eight kilohertz quartz crystal, the same one that is in every watch, sets the exact frequency.', cap: 'A 32.768 kHz quartz crystal (the one in every watch) sets the exact frequency.', do: async (T, D) => { await T.next(3, D * 0.6); T.highlightComp(T.comp('crystal'), 'crystal', 12); await T.wait(D * 0.3); T.clearHighlights(); } },
+      { say: 'The counter halves the frequency again and again. Outputs Q twelve, Q thirteen and Q fourteen blink at eight, four and two hertz.', cap: 'Halving again and again: Q12, Q13 and Q14 blink at 8, 4 and 2 Hz.', do: (T, D) => T.next(9, D) },
+      { say: 'A seventy four H C seventy four flip flop, wired as a toggle, divides by two once more. That gives exactly one hertz.', cap: 'A 74HC74 flip-flop, wired as a toggle, divides by 2 once more: exactly 1 Hz.', do: (T, D) => T.next(10, D) },
+      { say: 'Thirty two thousand seven hundred and sixty eight is two to the power of fifteen. Halving it fifteen times gives exactly one tick per second.', cap: '32 768 = 2¹⁵. Halving 15 times gives exactly one tick per second.', do: (T, D) => T.all(D * 0.5) },
+    ],
+  },
+  {
+    id: 'a-dff', level: 'advanced', num: 26, title: 'D Flip-Flop (74HC74)', sub: 'Toggle with a button',
+    steps: [
+      { intro: true, say: 'Advanced lesson twenty six: the D flip flop.', cap: 'Advanced lesson 26: the D flip-flop.' },
+      { say: 'The seventy four H C seventy four holds two D flip flops. Power it, and tie clear and preset high, because they are active low.', cap: 'The 74HC74: two D flip-flops. Power it, and tie CLR̅ and PR̅ HIGH (they are active LOW).', do: (T, D) => T.next(7, D) },
+      { say: 'Q bar is wired back to D. A push button, with a pull down resistor, is the clock.', cap: 'Q̅ is wired back to D. A push button with a pull-down resistor is the clock.', do: (T, D) => T.next(4, D) },
+      { say: 'An LED shows the output Q.', do: (T, D) => T.all(D * 0.9) },
+      { say: 'Press the clock button. On the rising edge, Q copies D, which was Q bar, so the LED toggles on.', cap: 'Press CLOCK: on the rising edge Q copies D (= Q̅), so the LED toggles ON.', do: async (T, D) => { await T.press('CLOCK', 350); } },
+      { say: 'Press again, and it toggles off. Every press flips it, so the output runs at half the clock rate.', do: async (T, D) => { await T.press('CLOCK', 300); await T.wait(D * 0.2); await T.press('CLOCK', 300); } },
+    ],
+  },
+  {
+    id: 'a-decoder', level: 'advanced', num: 27, title: '74HC138 3-to-8 Decoder', sub: 'Choose one of eight outputs',
+    steps: [
+      { intro: true, say: 'Advanced lesson twenty seven: the three to eight decoder.', cap: 'Advanced lesson 27: the 3-to-8 decoder.' },
+      { say: 'Three DIP switches make a three bit number, from zero to seven.', cap: 'Three DIP switches make a 3-bit number, 0 to 7.', do: (T, D) => T.next(6, D) },
+      { say: 'The seventy four H C one three eight decodes it. The enable pins are wired so the chip is always on.', cap: 'The 74HC138 decodes it. The enable pins are wired so the chip is always on.', do: (T, D) => T.next(9, D) },
+      { say: 'Eight LEDs connect from plus, through a resistor, into the outputs. The outputs are active low.', cap: 'Eight LEDs: + → resistor → LED → output. The outputs are active LOW.', do: (T, D) => T.all(D * 0.9) },
+      { say: 'With zero, output Y zero is selected. Its pin goes low, and current flows into the chip, so that LED lights.', cap: 'Input 0 → Y0 goes LOW → current flows into the chip → LED Y0 lights.', do: (T, D) => T.wait(D * 0.5) },
+      { say: 'Switch on A zero: one. Then add A two: five. Exactly one LED lights each time.', cap: 'A0 on → 1.  A2 + A0 → 5.  Exactly one LED lights.', do: async (T, D) => { await T.dip('dip4', 2); await T.wait(D * 0.3); await T.dip('dip4', 0); } },
+    ],
+  },
+  {
+    id: 'u-595', level: 'advanced', num: 28, title: 'Arduino + 74HC595 Shift Register', sub: '8 LEDs from 3 pins',
+    steps: [
+      { intro: true, say: 'Advanced lesson twenty eight: the seventy four H C five nine five shift register.', cap: 'Advanced lesson 28: the 74HC595 shift register.' },
+      { say: 'A shift register lets three Arduino pins control eight outputs.', do: (T, D) => T.next(3, D) },
+      { say: 'Power the chip, enable its outputs, and connect data, clock, and latch to pins eleven, twelve and eight.', cap: 'Power the chip, enable its outputs, and connect SER, SRCLK and RCLK to pins 11, 12 and 8.', do: (T, D) => T.next(11, D) },
+      { say: 'Eight LEDs connect to outputs Q zero to Q seven.', cap: 'Eight LEDs on Q0–Q7.', do: (T, D) => T.all(D * 0.9) },
+      { say: 'In the code, shift out sends eight bits, one by one. Then the latch pin copies them to all the outputs at once.', cap: 'shiftOut() sends 8 bits one by one. Then the latch pin copies them to all outputs at once.',
+        do: async (T, D) => { await T.tab('code', D * 0.2); await T.wait(D * 0.1); T.markCode('void show', '}'); } },
+      { say: 'Run it. First a running light, then a binary counter, all from just three wires.', do: async (T, D) => { await T.click('#btnRun', D * 0.2); } },
+    ],
+  },
+  {
+    id: 'u-cap', level: 'advanced', num: 29, title: 'Arduino: Measuring a Capacitor', sub: 'RC time constant with analogRead',
+    steps: [
+      { intro: true, say: 'Advanced lesson twenty nine: measuring a capacitor with an Arduino.' },
+      { say: 'Pin seven charges a one hundred microfarad capacitor through a ten k resistor. Analog pin A zero measures its voltage.', cap: 'Pin 7 charges a 100 µF capacitor through 10 kΩ. A0 measures its voltage.', do: (T, D) => T.all(D * 0.9) },
+      { say: 'The time constant tau equals R times C: ten kilo ohms times one hundred microfarads, which is one second.', cap: 'τ = R × C = 10 kΩ × 100 µF = 1 s', do: async (T, D) => { T.highlightComp(T.comp('capacitor'), '100 µF', 12); await T.wait(D * 0.7); T.clearHighlights(); } },
+      { say: 'The code empties the capacitor, then charges it, and prints the voltage every one hundred milliseconds.', cap: 'The sketch empties the capacitor, then charges it and prints the voltage every 100 ms.',
+        do: async (T, D) => { await T.tab('code', D * 0.2); await T.wait(D * 0.1); T.markCode('digitalWrite(chargePin, HIGH);', 'delay(100);'); await T.showCodeLine(22, D * 0.3); } },
+      { say: 'Run it, and open the serial tab. After about one second, the reading passes sixty three percent. That is the measured time constant.', cap: 'Run it: after about 1 s the reading passes 63%. That is the measured time constant.', do: async (T, D) => { await T.click('#btnRun', D * 0.2); await T.tab('serial', D * 0.15); } },
+    ],
+  },
 ];
 
 // a short closing line for the shorter lessons (keeps every video over 30 seconds)
 for (const L of LESSONS) {
-  if (['b-or', 'b-not', 'b-xor', 'b-nand', 'b-all', 'b-full', 'u-button', 'u-traffic', 'u-serial', 'u-dice', 'u-lcd', 'e-lcd'].includes(L.id))
+  if (['b-or', 'b-not', 'b-xor', 'b-nand', 'b-all', 'b-full', 'u-button', 'u-traffic', 'u-serial', 'u-dice', 'u-lcd', 'e-lcd', 'b-latch', 'a-counter'].includes(L.id))
     L.steps.push({ say: 'Now it is your turn. Open this lesson in Pin Sketch, and try it yourself!', cap: 'Now it\'s your turn: open this lesson in PinSketch and try it yourself!', do: (T, D) => T.wait(D * 0.5) });
 }
 

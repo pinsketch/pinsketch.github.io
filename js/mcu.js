@@ -177,9 +177,11 @@ class MCU {
         p = self.gpio(p);
         let e = io()[p];
         if (!e) { e = io()[p] = { mode: 'INPUT', val: 0 }; }
+        const old = e.val;
         if (e.mode === 'OUTPUT') { e.val = v ? 1 : 0; e.lvl = null; }
         else { e.mode = v ? 'INPUT_PULLUP' : 'INPUT'; self.warn(`digitalWrite(${p}) used before pinMode(${p}, OUTPUT) — the pin is still an INPUT, so the LED will not light. Add pinMode in setup().`); }
         app.markDirty();
+        if (old !== e.val && app.hasEdgeParts && app.hasEdgeParts()) app.ensureSolved(); // let clocked chips see every pulse
       },
       digitalRead(p) {
         p = self.gpio(p);
@@ -193,9 +195,11 @@ class MCU {
         if (!self.isESP && p < 6) p += 14;
         if (self.isESP && p === 0) p = 17;
         const r = self.readNet(p);
-        if (r.v === null || r.v === 'X') return r.v === null ? Math.floor(Math.random() * 40) : 0;
-        if (r.lvl > 0 && r.lvl < 1) return Math.round(r.lvl * 1023);
-        return r.v === 1 ? 1023 : 0;
+        if (r.v === 'X') return 0;
+        const n = mcuPinName(c, p); app.ensureSolved();
+        const V = n ? app.solver.volts(c, n) : 0, vref = self.isESP ? 3.3 : 5;
+        if (r.v === null && !V) return Math.floor(Math.random() * 40);
+        return Math.max(0, Math.min(1023, Math.round(V / vref * 1023)));
       },
       analogWrite(p, v) {
         p = self.gpio(p);
@@ -203,6 +207,15 @@ class MCU {
         if (!self.isESP && !UNO_PWM.includes(p)) { self.warn(`Pin ${p} has no PWM (~). On the UNO use 3, 5, 6, 9, 10 or 11.`); io()[p] = { mode: 'OUTPUT', val: v >= 128 ? 1 : 0, lvl: null }; }
         else io()[p] = { mode: 'OUTPUT', val: v > 0 ? 1 : 0, lvl: v / 255 };
         app.markDirty();
+      },
+      MSBFIRST: 1, LSBFIRST: 0,
+      shiftOut(dp, cp, order, val) {
+        for (let i = 0; i < 8; i++) {
+          const bitv = order ? (val >> (7 - i)) & 1 : (val >> i) & 1;
+          A.digitalWrite(dp, bitv); app.ensureSolved();
+          A.digitalWrite(cp, 1); app.ensureSolved();
+          A.digitalWrite(cp, 0); app.ensureSolved();
+        }
       },
       tone(p, f, d) { A.pinMode(p, 'OUTPUT'); A.digitalWrite(p, 1); if (d) setTimeout(() => { if (self.alive) A.digitalWrite(p, 0); }, d); },
       noTone(p) { A.digitalWrite(p, 0); },

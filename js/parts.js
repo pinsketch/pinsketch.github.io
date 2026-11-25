@@ -45,26 +45,32 @@ function label(x, y, txt, cls) { return `<text x="${x}" y="${y}" class="${cls ||
 /* =========================================================
  *   POWER
  * ========================================================= */
+const VOLT_OPTS = [1.5, 3.3, 5, 9, 12, 24];
+const fmtV = v => (Math.round(v * 10) / 10) + 'V';
 defPart('battery', {
-  name: 'Battery (5V)', cat: 'Power', box: [-64, -22, 4, 58],
+  name: 'Battery', cat: 'Power', box: [-64, -22, 4, 58],
+  defaults: { v: 5 },
+  props: [{ key: 'v', label: 'Voltage (V)', type: 'select', options: VOLT_OPTS }],
   pins: [{ n: '+', x: 0, y: 0, label: '+ positive' }, { n: '-', x: 0, y: 2, label: '− negative' }],
-  drive: () => [['+', 1], ['-', 0]],
-  draw: () => `
+  drive: c => [['+', 1, 2, 1, +c.props.v || 5], ['-', 0, 2, 0, 0]],
+  draw: c => `
     <path d="M-18,0 H0" stroke="#dc2626" stroke-width="3"/><path d="M-18,40 H0" stroke="#111827" stroke-width="3"/>
     <rect x="-60" y="-14" width="44" height="68" rx="7" fill="#1f2937" stroke="#0b0f17" stroke-width="2"/>
     <rect x="-60" y="-14" width="44" height="24" rx="7" fill="#f59e0b"/><rect x="-60" y="2" width="44" height="8" fill="#f59e0b"/>
     <rect x="-44" y="-20" width="12" height="7" rx="2" fill="#9ca3af"/>
     <text x="-38" y="4" class="t-strong" fill="#111" text-anchor="middle" font-size="17">+</text>
-    <text x="-38" y="32" fill="#fff" font-size="13" font-weight="700" text-anchor="middle">5V</text>
+    <text x="-38" y="32" fill="#fff" font-size="${String(c.props.v).length > 2 ? 11 : 13}" font-weight="700" text-anchor="middle">${esc(fmtV(+c.props.v || 5))}</text>
     <text x="-38" y="49" fill="#cbd5e1" font-size="13" text-anchor="middle">−</text>`,
 });
 
 defPart('vcc', {
-  name: 'VCC (+5V)', cat: 'Power', box: [-18, -34, 18, 4],
-  pins: [{ n: 'P', x: 0, y: 0, label: '+5V' }],
-  drive: () => [['P', 1]],
-  draw: () => `<path d="M0,0 V-18" stroke="#ef4444" stroke-width="3"/><path d="M-12,-18 H12" stroke="#ef4444" stroke-width="4"/>
-    <text x="0" y="-24" fill="#ef4444" font-size="11" font-weight="700" text-anchor="middle">+5V</text>`,
+  name: 'VCC (supply)', cat: 'Power', box: [-18, -34, 18, 4],
+  defaults: { v: 5 },
+  props: [{ key: 'v', label: 'Voltage (V)', type: 'select', options: VOLT_OPTS }],
+  pins: [{ n: 'P', x: 0, y: 0, label: '+ supply' }],
+  drive: c => [['P', 1, 2, 1, +c.props.v || 5]],
+  draw: c => `<path d="M0,0 V-18" stroke="#ef4444" stroke-width="3"/><path d="M-12,-18 H12" stroke="#ef4444" stroke-width="4"/>
+    <text x="0" y="-24" fill="#ef4444" font-size="11" font-weight="700" text-anchor="middle">+${esc(fmtV(+c.props.v || 5))}</text>`,
 });
 
 defPart('gnd', {
@@ -76,9 +82,10 @@ defPart('gnd', {
 
 defPart('psu', {
   name: 'Breadboard Power Module', cat: 'Power', level: 'advanced', box: [-70, -14, 6, 374],
-  defaults: { on: true },
+  defaults: { on: true, v: 5 },
+  props: [{ key: 'v', label: 'Output (V)', type: 'select', options: [3.3, 5] }],
   pins: [{ n: 'T-', x: 0, y: 0, label: 'Top rail −' }, { n: 'T+', x: 0, y: 1, label: 'Top rail +' }, { n: 'B+', x: 0, y: 16, label: 'Bottom rail +' }, { n: 'B-', x: 0, y: 17, label: 'Bottom rail −' }],
-  drive: c => c.props.on ? [['T-', 0], ['T+', 1], ['B+', 1], ['B-', 0]] : [],
+  drive: c => { const v = +c.props.v || 5; return c.props.on ? [['T-', 0, 2, 0, 0], ['T+', 1, 2, 1, v], ['B+', 1, 2, 1, v], ['B-', 0, 2, 0, 0]] : []; },
   act: (c, a, ph) => { if (ph === 'down') { c.props.on = !c.props.on; return 'props'; } return false; },
   draw: c => `
     <rect x="-66" y="-12" width="58" height="384" rx="6" fill="#1f2937" stroke="#0b0f17" stroke-width="2"/>
@@ -88,7 +95,7 @@ defPart('psu', {
       <rect x="-50" y="${c.props.on ? 156 : 182}" width="24" height="22" rx="3" fill="${c.props.on ? '#22c55e' : '#e5e7eb'}"/></g>
     <text x="-38" y="226" fill="#e2e8f0" font-size="10" text-anchor="middle">${c.props.on ? 'ON' : 'OFF'}</text>
     <circle cx="-38" cy="250" r="6" fill="${c.props.on ? '#4ade80' : '#14532d'}" ${c.props.on ? 'filter="url(#glow)"' : ''}/>
-    <text x="-38" y="300" fill="#fbbf24" font-size="11" font-weight="700" text-anchor="middle" transform="rotate(-90 -38 300)">5V POWER</text>
+    <text x="-38" y="300" fill="#fbbf24" font-size="11" font-weight="700" text-anchor="middle" transform="rotate(-90 -38 300)">${esc(fmtV(+c.props.v || 5))} POWER</text>
     ${legs([[0, 0], [0, 20], [0, 320], [0, 340]], 0)}
     <path d="M-8,0 H0 M-8,20 H0 M-8,320 H0 M-8,340 H0" stroke="#9ca3af" stroke-width="3"/>`,
 });
@@ -99,6 +106,12 @@ defPart('clock', {
   props: [{ key: 'hz', label: 'Frequency (Hz)', type: 'select', options: [0.5, 1, 2, 4, 10] }],
   pins: [{ n: 'Y', x: 0, y: 0, label: 'Clock out' }],
   drive: c => [['Y', c.st.v ? 1 : 0]],
+  tick: (c, now) => {
+    const per = 500 / (+c.props.hz || 1);
+    if (!c.st.next) { c.st.next = now + per; return false; }
+    if (now >= c.st.next) { c.st.v = !c.st.v; c.st.next = now + per; return true; }
+    return false;
+  },
   visual: c => { c.vis = { v: c.st.v ? 1 : 0, hz: c.props.hz }; },
   draw: c => `<path d="M-8,0 H0" stroke="#94a3b8" stroke-width="3"/>
     <rect x="-64" y="-14" width="56" height="28" rx="5" fill="#1e293b" stroke="#a78bfa" stroke-width="2"/>
@@ -183,12 +196,12 @@ defPart('pot', {
   pins: [{ n: '1', x: 0, y: 0, label: 'End 1 (GND)' }, { n: 'W', x: 1, y: 0, label: 'Wiper (signal)' }, { n: '3', x: 2, y: 0, label: 'End 3 (VCC)' }],
   update: (c, S) => {
     const a = S.v(c, '1'), b = S.v(c, '3'), p = c.props.pos / 100;
-    let w = null;
-    if (a === 0 && b === 1) w = p; else if (a === 1 && b === 0) w = 1 - p;
-    if (c.st.w !== w) { c.st.w = w; return true; }
+    let w = null, top = 0;
+    if (a === 0 && b === 1) { w = p; top = S.volts(c, '3'); } else if (a === 1 && b === 0) { w = 1 - p; top = S.volts(c, '1'); }
+    if (c.st.w !== w || c.st.top !== top) { c.st.w = w; c.st.top = top; return true; }
     return false;
   },
-  drive: c => c.st.w == null ? [] : [['W', c.st.w >= 0.5 ? 1 : 0, 2, c.st.w]],
+  drive: c => c.st.w == null ? [] : [['W', c.st.w >= 0.5 ? 1 : 0, 2, c.st.w, c.st.w * (c.st.top || 5)]],
   act: (c, a, ph, info) => {
     if (ph === 'down') { c.st.p0 = c.props.pos; return false; }
     if (ph === 'move') { const np = Math.max(0, Math.min(100, Math.round(c.st.p0 - info.dy * 0.6 + info.dx * 0.6))); if (np !== c.props.pos) { c.props.pos = np; return 'props'; } }
@@ -209,14 +222,20 @@ defPart('pot', {
  * ========================================================= */
 defPart('bulb', {
   name: 'Light Bulb', cat: 'Outputs', box: [-4, -70, 44, 4],
-  defaults: { label: '' },
-  props: [{ key: 'label', label: 'Label', type: 'text' }],
+  defaults: { label: '', rated: 5 },
+  props: [{ key: 'rated', label: 'Rated voltage (V)', type: 'select', options: [3, 5, 12, 24] }, { key: 'label', label: 'Label', type: 'text' }],
   pins: [{ n: 'A', x: 0, y: 0 }, { n: 'B', x: 2, y: 0 }],
-  loads: () => [{ a: 'A', b: 'B', kind: 'light' }],
+  loads: c => [{ a: 'A', b: 'B', kind: 'light', rated: +c.props.rated || 5 }],
+  analog: c => [{ t: 'R', a: 'A', b: 'B', R: 60, load: true, ifull: (+c.props.rated || 5) / 60, rated: +c.props.rated || 5 }],
   output: c => (c.vis && c.vis.b > 0),
-  visual: (c, S) => { c.vis = { b: S.load(c) }; },
+  visual: (c, S) => { c.vis = { b: S.load(c), burnt: S.blown(c) }; },
   draw: c => {
-    const b = (c.vis && c.vis.b) || 0;
+    const b = (c.vis && c.vis.b) || 0, burnt = c.vis && c.vis.burnt;
+    if (burnt) return `<path d="M0,0 V-8 H12 M40,0 V-8 H28" stroke="#9ca3af" stroke-width="3" fill="none"/>
+      <rect x="10" y="-20" width="20" height="13" rx="2" fill="#9ca3af" stroke="#4b5563"/>
+      <circle cx="20" cy="-36" r="17" fill="rgba(68,64,60,0.75)" stroke="#78716c" stroke-width="2"/>
+      <path d="M14,-21 L16,-34 M26,-21 L24,-34 M17,-38 L20,-42 L23,-37" fill="none" stroke="#57534e" stroke-width="1.6"/>
+      <text x="20" y="-58" class="plabel warn">💥 burnt out! (${c.props.rated}V bulb)</text>`;
     return `<path d="M0,0 V-8 H12 M40,0 V-8 H28" stroke="#9ca3af" stroke-width="3" fill="none"/>
       <rect x="10" y="-20" width="20" height="13" rx="2" fill="#9ca3af" stroke="#4b5563"/>
       <path d="M11,-16 H29 M11,-12 H29" stroke="#6b7280"/>
@@ -227,6 +246,7 @@ defPart('bulb', {
   },
 });
 
+const LED_VF = { red: 1.8, orange: 1.9, yellow: 2, green: 2.1, blue: 2.9, white: 2.9 };
 const LED_COLORS = { red: '#ef4444', green: '#22c55e', yellow: '#facc15', blue: '#3b82f6', white: '#f8fafc', orange: '#fb923c' };
 defPart('led', {
   name: 'LED', cat: 'Outputs', box: [-6, -52, 26, 4],
@@ -234,6 +254,7 @@ defPart('led', {
   props: [{ key: 'color', label: 'Color', type: 'select', options: Object.keys(LED_COLORS) }, { key: 'label', label: 'Label', type: 'text' }],
   pins: [{ n: 'A', x: 0, y: 0, label: 'Anode (+, long leg)' }, { n: 'K', x: 1, y: 0, label: 'Cathode (−, short leg)' }],
   loads: () => [{ a: 'A', b: 'K', dir: true, kind: 'light' }],
+  analog: c => [{ t: 'D', a: 'A', b: 'K', vf: LED_VF[c.props.color] || 2, rs: 25, load: true, ifull: 0.006 }],
   output: c => (c.vis && c.vis.b > 0),
   visual: (c, S) => { c.vis = { b: S.load(c) }; },
   draw: c => {
@@ -268,6 +289,7 @@ defPart('buzzer', {
   name: 'Buzzer', cat: 'Outputs', box: [-12, -52, 34, 4],
   pins: [{ n: 'P', x: 0, y: 0, label: '+' }, { n: 'N', x: 1, y: 0, label: '−' }],
   loads: () => [{ a: 'P', b: 'N', dir: true, kind: 'light' }],
+  analog: () => [{ t: 'D', a: 'P', b: 'N', vf: 1, rs: 150, load: true, ifull: 0.01 }],
   output: c => (c.vis && c.vis.b > 0),
   visual: (c, S) => { c.vis = { b: S.load(c) }; },
   draw: c => {
@@ -284,6 +306,7 @@ defPart('motor', {
   name: 'DC Motor / Fan', cat: 'Outputs', box: [-4, -56, 44, 4],
   pins: [{ n: 'A', x: 0, y: 0 }, { n: 'B', x: 2, y: 0 }],
   loads: () => [{ a: 'A', b: 'B', kind: 'light' }],
+  analog: () => [{ t: 'R', a: 'A', b: 'B', R: 50, load: true, ifull: 0.08 }],
   output: c => (c.vis && c.vis.b > 0),
   visual: (c, S) => { c.vis = { b: S.load(c) }; },
   draw: c => {
@@ -374,7 +397,11 @@ defPart('lcd_i2c', {
 /* =========================================================
  *   PASSIVES
  * ========================================================= */
-const RES_BANDS = { '220': ['#dc2626', '#dc2626', '#78350f'], '330': ['#f97316', '#f97316', '#78350f'], '1k': ['#78350f', '#111', '#dc2626'], '4.7k': ['#facc15', '#7c3aed', '#dc2626'], '10k': ['#78350f', '#111', '#f97316'] };
+const BAND = ['#111', '#78350f', '#dc2626', '#f97316', '#facc15', '#16a34a', '#2563eb', '#7c3aed', '#6b7280', '#f8fafc'];
+const RES_VALUES = ['100', '220', '330', '470', '1k', '2.2k', '4.7k', '10k', '22k', '47k', '100k', '220k', '470k', '1M', '10M'];
+function ohmsOf(s) { s = String(s); const m = /^([\d.]+)\s*([kM]?)/.exec(s); if (!m) return 1000; return parseFloat(m[1]) * (m[2] === 'k' ? 1e3 : m[2] === 'M' ? 1e6 : 1); }
+function bandsOf(s) { const o = Math.round(ohmsOf(s)); const d = String(o); return [BAND[+d[0]], BAND[+(d[1] || 0)], BAND[Math.max(0, d.length - 2)]]; }
+const RES_BANDS = Object.fromEntries(RES_VALUES.map(v => [v, bandsOf(v)]));
 defPart('resistor', {
   name: 'Resistor', cat: 'Passive', box: [-2, -10, 82, 10],
   defaults: { ohms: '220' },
@@ -382,14 +409,45 @@ defPart('resistor', {
   pins: [{ n: 'A', x: 0, y: 0 }, { n: 'B', x: 4, y: 0 }],
   resist: () => [['A', 'B']],
   loads: () => [{ a: 'A', b: 'B', kind: 'res' }],
+  analog: c => [{ t: 'R', a: 'A', b: 'B', R: ohmsOf(c.props.ohms) }],
   draw: c => {
-    const b = RES_BANDS[c.props.ohms] || RES_BANDS['220'];
+    const b = RES_BANDS[c.props.ohms] || bandsOf(c.props.ohms);
     return `<path d="M0,0 H80" stroke="#9ca3af" stroke-width="2.5"/>
       <rect x="18" y="-7" width="44" height="14" rx="6" fill="#e7c899" stroke="#a16207"/>
       <rect x="25" y="-7" width="4" height="14" fill="${b[0]}"/><rect x="33" y="-7" width="4" height="14" fill="${b[1]}"/>
       <rect x="41" y="-7" width="4" height="14" fill="${b[2]}"/><rect x="53" y="-7" width="3" height="14" fill="#ca8a04"/>
-      <text x="40" y="-11" class="plabel small">${c.props.ohms}Ω</text>`;
+      <text x="40" y="-11" class="plabel small">${esc(c.props.ohms)}Ω</text>`;
   },
+});
+
+const CAP_UF = [1, 10, 47, 100, 220, 470, 1000, 2200];
+defPart('capacitor', {
+  name: 'Capacitor (electrolytic)', short: 'Capacitor', cat: 'Passive', box: [-8, -64, 28, 4], cap: true,
+  defaults: { uf: 100 },
+  props: [{ key: 'uf', label: 'Capacitance (µF)', type: 'select', options: CAP_UF }],
+  pins: [{ n: '+', x: 0, y: 0, label: '+ (long leg)' }, { n: '-', x: 1, y: 0, label: '− (stripe side)' }],
+  analog: c => [{ t: 'C', a: '+', b: '-', C: (+c.props.uf || 100) * 1e-6 }],
+  visual: (c, S) => { const vc = c.st.vc || 0; c.vis = { vc: Math.round(vc * 10) / 10, full: Math.max(0, Math.min(1, vc / Math.max(5, S.vmax || 5))) }; },
+  draw: c => {
+    const v = c.vis || {}, vc = v.vc || 0, f = v.full || 0, h = 36 * f, rev = vc < -0.5;
+    return `${legs([[0, 0], [20, 0]], 10)}
+      <rect x="-5" y="-50" width="30" height="40" rx="6" fill="#1e3a8a" stroke="#172554" stroke-width="1.5"/>
+      <rect x="-3" y="${-12 - h}" width="26" height="${h}" rx="3" fill="#38bdf8" opacity="0.55"/>
+      <rect x="15" y="-50" width="10" height="40" fill="#cbd5e1" opacity="0.85"/>
+      <text x="20" y="-34" fill="#1e3a8a" font-size="10" font-weight="800" text-anchor="middle">−</text>
+      <text x="20" y="-20" fill="#1e3a8a" font-size="10" font-weight="800" text-anchor="middle">−</text>
+      <ellipse cx="10" cy="-50" rx="15" ry="3" fill="#94a3b8"/>
+      <text x="10" y="-56" class="plabel small">${esc(c.props.uf)}µF · ${esc(vc.toFixed(1))}V</text>
+      ${rev ? '<text x="10" y="-68" class="plabel warn">⚠ reversed!</text>' : ''}`;
+  },
+});
+
+defPart('crystal', {
+  name: 'Crystal 32.768 kHz', short: 'Crystal', cat: 'Passive', level: 'advanced', box: [-10, -36, 30, 4], crystal: 32768,
+  pins: [{ n: '1', x: 0, y: 0, label: 'Crystal pin 1' }, { n: '2', x: 1, y: 0, label: 'Crystal pin 2' }],
+  draw: () => `${legs([[0, 0], [20, 0]], 10)}
+    <rect x="-7" y="-30" width="34" height="20" rx="10" fill="#d4d4d8" stroke="#71717a" stroke-width="1.5"/>
+    <text x="10" y="-17" fill="#27272a" font-size="8" font-weight="800" text-anchor="middle">32.768k</text>`,
 });
 
 defPart('note', {
@@ -468,8 +526,10 @@ function defIC(type, title, sub, n, names, logic, extra) {
     pinNames: names,
     update: (c, S) => {
       const vcc = String(n), gnd = String(n / 2);
+      const vv = S.volts(c, vcc); c.st.vv = vv;
+      c.st.burnt = S.v(c, vcc) === 1 && vv > ((extra && extra.maxV) || 6.5);
       let out = {};
-      if (S.powered(c, vcc, gnd)) {
+      if (S.powered(c, vcc, gnd) && !c.st.burnt) {
         const inp = p => S.v(c, String(p)) === 1;
         out = logic(inp, c, S) || {};
       }
@@ -483,9 +543,10 @@ function defIC(type, title, sub, n, names, logic, extra) {
       if (a !== JSON.stringify(prev)) { c.st.out = out; return true; }
       return false;
     },
-    drive: c => Object.entries(c.st.out || {}).map(([p, v]) => [p, v ? 1 : 0]),
-    visual: (c, S) => { c.vis = { pw: S.powered(c, String(n), String(n / 2)) }; },
-    draw: c => dipDraw(n, title, sub) + (c.vis && c.vis.pw === false ? `<text x="${(n / 2 - 1) * 10}" y="-4" class="plabel warn">no power</text>` : ''),
+    drive: c => Object.entries(c.st.out || {}).map(([p, v]) => [p, v ? 1 : 0, 2, v === 0.5 ? 0.5 : (v ? 1 : 0), v ? (c.st.vv || 5) * (v === 0.5 ? 0.5 : 1) : 0]),
+    visual: (c, S) => { c.vis = { pw: S.powered(c, String(n), String(n / 2)), burnt: !!c.st.burnt }; },
+    draw: c => dipDraw(n, title, sub) + (c.vis && c.vis.burnt ? `<text x="${(n / 2 - 1) * 10}" y="-4" class="plabel warn">💥 VCC too high (max ${(extra && extra.maxV) || 6}V)</text>`
+      : c.vis && c.vis.pw === false ? `<text x="${(n / 2 - 1) * 10}" y="-4" class="plabel warn">no power</text>` : ''),
   }, extra || {}));
 }
 const Q2 = ['1A', '1B', '1Y', '2A', '2B', '2Y', 'GND', '3Y', '3A', '3B', '4Y', '4A', '4B', 'VCC'];
@@ -516,7 +577,113 @@ defIC('ic4511', 'CD4511', 'BCD→7seg', 16, ['B', 'C', 'LT (lamp test, tie HIGH)
     if (!inp(3)) lit = 'abcdefg'; else if (!inp(4)) lit = ''; else if (n <= 9) lit = HEX7[n];
     const o = {}; for (const k in segPin) o[segPin[k]] = lit.includes(k) ? 1 : 0;
     return o;
+  }, { maxV: 18 });
+
+/* ---------- sequential & timing chips ---------- */
+const lowIn = (S, c, p) => S.v(c, String(p)) === 0; // active-LOW input: only when actually driven LOW (unconnected = inactive)
+defIC('ic7474', '74HC74', 'Dual D flip-flop', 14, ['1CLR̅ (clear, LOW)', '1D (data)', '1CLK (clock ↑)', '1PR̅ (preset, LOW)', '1Q', '1Q̅', 'GND', '2Q̅', '2Q', '2PR̅ (preset, LOW)', '2CLK (clock ↑)', '2D (data)', '2CLR̅ (clear, LOW)', 'VCC'],
+  (inp, c, S) => {
+    const o = {};
+    const ff = (k, clr, d, clk, pr, q, qn) => {
+      let st = c.st[k] || 0; const ck = inp(clk);
+      if (lowIn(S, c, pr) && lowIn(S, c, clr)) { o[q] = 1; o[qn] = 1; c.st['p' + k] = ck; return; }
+      if (lowIn(S, c, pr)) st = 1; else if (lowIn(S, c, clr)) st = 0;
+      else if (ck && !c.st['p' + k]) st = inp(d) ? 1 : 0;
+      c.st['p' + k] = ck; c.st[k] = st; o[q] = st; o[qn] = st ? 0 : 1;
+    };
+    ff('f1', 1, 2, 3, 4, 5, 6); ff('f2', 13, 12, 11, 10, 9, 8);
+    return o;
+  }, { edge: true });
+defIC('ic74393', '74HC393', 'Dual 4-bit counter', 14, ['1CP̅ (clock ↓)', '1MR (reset, HIGH)', '1Q0 (1)', '1Q1 (2)', '1Q2 (4)', '1Q3 (8)', 'GND', '2Q3 (8)', '2Q2 (4)', '2Q1 (2)', '2Q0 (1)', '2MR (reset, HIGH)', '2CP̅ (clock ↓)', 'VCC'],
+  (inp, c) => {
+    const o = {};
+    const ctr = (k, cp, mr, qs) => {
+      const ck = inp(cp); let v = c.st[k] || 0;
+      if (inp(mr)) v = 0; else if (!ck && c.st['p' + k]) v = (v + 1) & 15;
+      c.st['p' + k] = ck; c.st[k] = v; qs.forEach((p, i) => { o[p] = (v >> i) & 1; });
+    };
+    ctr('a', 1, 2, [3, 4, 5, 6]); ctr('b', 13, 12, [11, 10, 9, 8]);
+    return o;
+  }, { edge: true });
+defIC('ic74138', '74HC138', '3-to-8 decoder', 16, ['A0 (1)', 'A1 (2)', 'A2 (4)', 'E1̅ (enable, LOW)', 'E2̅ (enable, LOW)', 'E3 (enable, HIGH)', 'Y7̅', 'GND', 'Y6̅', 'Y5̅', 'Y4̅', 'Y3̅', 'Y2̅', 'Y1̅', 'Y0̅', 'VCC'],
+  inp => {
+    const en = !inp(4) && !inp(5) && inp(6), k = inp(1) | inp(2) << 1 | inp(3) << 2, o = {};
+    [15, 14, 13, 12, 11, 10, 9, 7].forEach((p, i) => { o[p] = en && i === k ? 0 : 1; });
+    return o;
   });
+defIC('ic74595', '74HC595', '8-bit shift register', 16, ['Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Q6', 'Q7', 'GND', "Q7' (serial out)", 'SRCLR̅ (clear, LOW)', 'SRCLK (shift clock ↑)', 'RCLK (latch clock ↑)', 'OE̅ (output enable, LOW)', 'SER (data in)', 'Q0', 'VCC'],
+  (inp, c, S) => {
+    let sr = c.st.sr || 0, lat = c.st.lat || 0;
+    const sck = inp(11), rck = inp(12);
+    if (lowIn(S, c, 10)) sr = 0; else if (sck && !c.st.psck) sr = ((sr << 1) | (inp(14) ? 1 : 0)) & 255;
+    if (rck && !c.st.prck) lat = sr;
+    c.st.psck = sck; c.st.prck = rck; c.st.sr = sr; c.st.lat = lat;
+    const o = {}, oe = !inp(13);
+    [15, 1, 2, 3, 4, 5, 6, 7].forEach((p, i) => { if (oe) o[p] = (lat >> i) & 1; });
+    o[9] = (sr >> 7) & 1;
+    return o;
+  }, { edge: true });
+defIC('ic4017', 'CD4017', 'Decade counter', 16, ['Q5', 'Q1', 'Q0', 'Q2', 'Q6', 'Q7', 'Q3', 'VSS (GND)', 'Q8', 'Q4', 'Q9', 'CO (carry out)', 'CLK INH (inhibit, HIGH)', 'CLK (clock ↑)', 'RESET (HIGH)', 'VDD (+)'],
+  (inp, c) => {
+    const ck = inp(14) && !inp(13);
+    let v = c.st.n || 0;
+    if (inp(15)) v = 0; else if (ck && !c.st.pc) v = (v + 1) % 10;
+    c.st.pc = ck; c.st.n = v;
+    const o = {};
+    [3, 2, 4, 7, 10, 1, 5, 6, 9, 11].forEach((p, i) => { o[p] = i === v ? 1 : 0; });
+    o[12] = v < 5 ? 1 : 0;
+    return o;
+  }, { edge: true, maxV: 18 });
+const Q4060 = { 7: 4, 5: 5, 4: 6, 6: 7, 14: 8, 13: 9, 15: 10, 1: 12, 2: 13, 3: 14 };
+defIC('ic4060', 'CD4060', '14-stage counter + osc', 16, ['Q12 (÷4096)', 'Q13 (÷8192)', 'Q14 (÷16384)', 'Q6 (÷64)', 'Q5 (÷32)', 'Q7 (÷128)', 'Q4 (÷16)', 'VSS (GND)', 'φO (osc out)', 'φO̅ (osc out, crystal)', 'φI (osc in, crystal)', 'RESET (HIGH)', 'Q9 (÷512)', 'Q8 (÷256)', 'Q10 (÷1024)', 'VDD (+)'],
+  (inp, c) => {
+    c.st.rst = inp(12);
+    const b = c.st.bits || {}, o = {};
+    for (const p in Q4060) o[p] = c.st.rst ? 0 : (b[Q4060[p]] || 0);
+    return o;
+  }, {
+    maxV: 18,
+    tick: (c, now, S) => {
+      if (!S.uf || !c._pk) return false;
+      const r10 = S.root(c, '10'), r11 = S.root(c, '11');
+      const xt = S.circ.comps.find(x => PARTS[x.type].crystal && x._pk && ((S.root(x, '1') === r10 && S.root(x, '2') === r11) || (S.root(x, '1') === r11 && S.root(x, '2') === r10)));
+      const f = xt && c.vis && c.vis.pw && !c.st.rst ? PARTS[xt.type].crystal : 0;
+      if (!f || c.st.t0 === undefined) c.st.t0 = now;
+      const cnt = f ? Math.floor((now - c.st.t0) / 1000 * f) : 0, bits = {};
+      for (const k of [4, 5, 6, 7, 8, 9, 10, 12, 13, 14]) bits[k] = f && f / Math.pow(2, k) > 12 ? 0.5 : (cnt >> (k - 1)) & 1;
+      c.st.osc = !!f;
+      const key = JSON.stringify(bits);
+      if (key !== c.st.bk) { c.st.bits = bits; c.st.bk = key; return true; }
+      return false;
+    },
+  });
+
+/* ---------- NE555 timer (works with the analog capacitor solver) ---------- */
+const N555 = ['GND', 'TRIG (trigger: below ⅓ VCC → output HIGH)', 'OUT (output)', 'RESET (active LOW)', 'CTRL (control voltage)', 'THR (threshold: above ⅔ VCC → output LOW)', 'DIS (discharge)', 'VCC (4.5–16 V)'];
+function eval555(c, S) {
+  const vcc = S.volts(c, '8'), ok = S.v(c, '8') === 1 && S.v(c, '1') === 0 && vcc >= 3;
+  if (!ok) return { ok: false, q: 0, vcc, burnt: false };
+  if (vcc > 16.5) return { ok: false, q: 0, vcc, burnt: true };
+  let q = c.st.q || 0;
+  if (lowIn(S, c, 4)) q = 0;
+  else { const tr = S.volts(c, '2'), th = S.volts(c, '6'); if (tr < vcc / 3) q = 1; else if (th > 2 * vcc / 3) q = 0; }
+  return { ok: true, q, vcc, burnt: false };
+}
+defPart('ne555', {
+  name: 'NE555 Timer', short: 'NE555', cat: 'ICs', level: 'both', box: [-10, -2, 70, 62],
+  pins: dipPins(8, N555), pinNames: N555,
+  update: (c, S) => {
+    const r = eval555(c, S);
+    const ch = r.q !== c.st.q || r.ok !== c.st.ok || Math.abs((r.vcc || 0) - (c.st.vcc || 0)) > 0.01 || r.burnt !== c.st.burnt;
+    c.st.q = r.q; c.st.ok = r.ok; c.st.vcc = r.vcc; c.st.burnt = r.burnt;
+    return ch;
+  },
+  acheck: (c, S) => { const r = eval555(c, S); return r.ok !== !!c.st.ok || r.q !== c.st.q; },
+  drive: c => !c.st.ok ? [] : [['3', c.st.q ? 1 : 0, 2, c.st.q ? 1 : 0, c.st.q ? c.st.vcc : 0], ...(c.st.q ? [] : [['7', 0, 2, 0, 0]])],
+  visual: c => { c.vis = { ok: !!c.st.ok, pw: !!c.st.ok || !!c.st.burnt, q: c.st.q || 0, burnt: !!c.st.burnt }; },
+  draw: c => dipDraw(8, 'NE555', 'Timer') + `<circle cx="52" cy="17" r="3.5" fill="${c.vis && c.vis.q ? '#f43f5e' : '#3f1d24'}"/>` +
+    (c.vis && c.vis.burnt ? '<text x="30" y="-4" class="plabel warn">💥 VCC too high (max 16V)</text>' : c.vis && !c.vis.ok ? '<text x="30" y="-4" class="plabel warn">no power</text>' : ''),
+});
 
 /* =========================================================
  *   BREADBOARD
@@ -580,13 +747,13 @@ function mcuPinName(c, gpio) {
   for (const k in ESP_GPIO) if (ESP_GPIO[k] === gpio) return k;
   return null;
 }
-function mcuDrive(c, power) {
+function mcuDrive(c, power, vout) {
   const d = power.slice();
   const io = c.st.io || {};
   for (const g in io) {
     const e = io[g], n = mcuPinName(c, g); if (!n) continue;
-    if (e.mode === 'OUTPUT') d.push([n, e.val ? 1 : 0, 2, e.lvl == null ? (e.val ? 1 : 0) : e.lvl]);
-    else if (e.mode === 'INPUT_PULLUP') d.push([n, 1, 1]);
+    if (e.mode === 'OUTPUT') { const l = e.lvl == null ? (e.val ? 1 : 0) : e.lvl; d.push([n, e.val ? 1 : 0, 2, l, vout * l]); }
+    else if (e.mode === 'INPUT_PULLUP') d.push([n, 1, 1, 1, vout]);
   }
   return d;
 }
@@ -618,7 +785,7 @@ defPart('uno', {
   defaults: { code: UNO_CODE },
   pins: [...UNO_TOP.map(([n, x]) => ({ n, x, y: 1, label: UNO_LABEL(n) })), ...UNO_BOT.map(([n, x]) => ({ n, x, y: 18, label: UNO_LABEL(n) }))],
   links: () => [['GND', 'GND1'], ['GND', 'GND2'], ['SDA', 'A4'], ['SCL', 'A5']],
-  drive: c => mcuDrive(c, [['5V', 1], ['3V3', 1], ['VIN', 1], ['IOREF', 1], ['GND', 0], ['GND1', 0], ['GND2', 0]]),
+  drive: c => mcuDrive(c, [['5V', 1, 2, 1, 5], ['3V3', 1, 2, 1, 3.3], ['VIN', 1, 2, 1, 5], ['IOREF', 1, 2, 1, 5], ['GND', 0], ['GND1', 0], ['GND2', 0]], 5),
   visual: c => { const io = (c.st.io || {})[13]; c.vis = { L: !!(io && io.mode === 'OUTPUT' && (io.lvl != null ? io.lvl > 0 : io.val)), run: !!c.st.running, tx: !!c.st.tx }; },
   draw: c => {
     const v = c.vis || {};
@@ -662,7 +829,7 @@ defPart('esp8266', {
   pins: [...ESP_TOP.map(([n, x]) => ({ n, x, y: 0, label: ESP_LABEL(n) + (ESP_GPIO[n] !== undefined ? ` (GPIO${ESP_GPIO[n]})` : '') })),
     ...ESP_BOT.map(([n, x]) => ({ n, x, y: 6, label: ESP_LABEL(n) + (n === 'A0' ? ' (analog)' : '') }))],
   links: () => [['GND', 'GNDb'], ['GND', 'GNDc'], ['GND', 'GNDd'], ['3V3', '3V3b'], ['3V3', '3V3c']],
-  drive: c => mcuDrive(c, [['3V3', 1], ['3V3b', 1], ['3V3c', 1], ['VIN', 1], ['GND', 0], ['GNDb', 0], ['GNDc', 0], ['GNDd', 0]]),
+  drive: c => mcuDrive(c, [['3V3', 1, 2, 1, 3.3], ['3V3b', 1, 2, 1, 3.3], ['3V3c', 1, 2, 1, 3.3], ['VIN', 1, 2, 1, 5], ['GND', 0], ['GNDb', 0], ['GNDc', 0], ['GNDd', 0]], 3.3),
   visual: c => { const io = (c.st.io || {})[2]; c.vis = { L: !!(io && io.mode === 'OUTPUT' && !io.val), run: !!c.st.running, wifi: !!c.st.wifi, tx: !!c.st.tx }; },
   draw: c => {
     const v = c.vis || {};
@@ -681,4 +848,4 @@ defPart('esp8266', {
   },
 });
 
-if (typeof module !== 'undefined') module.exports = Object.assign(module.exports || {}, { BB_ROWS, BB_RAILS, mcuPinName, ESP_GPIO });
+if (typeof module !== 'undefined') module.exports = Object.assign(module.exports || {}, { BB_ROWS, BB_RAILS, mcuPinName, ESP_GPIO, ohmsOf });

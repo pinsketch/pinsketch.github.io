@@ -17,10 +17,12 @@ function boxOf(c) {
 function stateText(n) {
   if (!n) return '<span class="st-z">floating (not connected to a source)</span>';
   if (n.v === 'X') return '<span class="st-x">SHORT CIRCUIT! (HIGH and LOW connected)</span>';
-  const weak = n.s === 1 ? ' <i>(via resistor / pull-up)</i>' : '';
-  if (n.v === 1) return `<span class="st-hi">HIGH (1)${n.lvl > 0 && n.lvl < 1 ? ' · ' + Math.round(n.lvl * 100) + '%' : ''}</span>${weak}`;
+  const weak = n.s === 1 && !n.an ? ' <i>(via resistor / pull-up)</i>' : '';
+  const V = typeof n.volts === 'number' ? ` · <b>${(Math.round(n.volts * 100) / 100)} V</b>` : '';
+  if (n.an) return `<span class="${n.v === 1 ? 'st-hi' : 'st-lo'}">${(Math.round(n.volts * 100) / 100)} V</span> <i>(reads as ${n.v === 1 ? 'HIGH' : 'LOW'})</i>`;
+  if (n.v === 1) return `<span class="st-hi">HIGH (1)${n.lvl > 0 && n.lvl < 1 ? ' · ' + Math.round(n.lvl * 100) + '%' : ''}</span>${V}${weak}`;
   if (n.lvl > 0) return `<span class="st-hi">analog ${Math.round(n.lvl * 100)}%</span>`;
-  return `<span class="st-lo">LOW (0)</span>${weak}`;
+  return `<span class="st-lo">LOW (0)</span> · <b>0 V</b>${weak}`;
 }
 
 class App {
@@ -34,6 +36,7 @@ class App {
     this.wireColor = this.adv ? '#2563eb' : '#f97316';
     this.showLevels = !this.adv;
     this.showFlow = true;
+    try { this.edit = localStorage.getItem('pinsketch-edit') === '1'; } catch (e) { this.edit = false; }
     this.undoStack = []; this.redoStack = [];
     this.mcus = new Map();
     this.dirty = true; this.needVis = true;
@@ -64,6 +67,8 @@ class App {
     </header>
     <div class="toolbar">
       <button class="tbtn mobile-only" id="btnLeft">☰ Parts</button>
+      <button class="tbtn editbtn" id="btnEdit" title="Edit mode (E): ON = place parts and draw wires, OFF = only use switches and buttons"></button>
+      <span class="sep"></span>
       <button class="tbtn" data-cmd="undo" title="Undo (Ctrl+Z)">↶</button>
       <button class="tbtn" data-cmd="redo" title="Redo (Ctrl+Y)">↷</button>
       <span class="sep"></span>
@@ -72,8 +77,8 @@ class App {
       <button class="tbtn" data-cmd="clear" title="Remove everything">✖ Clear</button>
       <span class="sep"></span>
       <span class="lbl">Wire</span><div class="swatches" id="swatches">${WIRE_COLORS.map(c => `<button class="sw" data-color="${c}" style="background:${c}" title="${c}"></button>`).join('')}</div>
-      <label class="chk" title="Color wires by logic level: red = HIGH, blue = LOW"><input type="checkbox" id="chkLevels" ${this.showLevels ? 'checked' : ''}> Signal colors</label>
-      <label class="chk" title="Animate the current flowing through the circuit (from + to −)"><input type="checkbox" id="chkFlow" checked> Current flow</label>
+      <label class="chk" title="Color wires by logic level: red = HIGH, blue = LOW"><input type="checkbox" id="chkLevels" ${this.showLevels ? 'checked' : ''}> Signals</label>
+      <label class="chk" title="Animate the current flowing through the circuit (from + to −)"><input type="checkbox" id="chkFlow" checked> Current</label>
       <span class="sep"></span>
       <button class="tbtn" data-cmd="zoomout" title="Zoom out">−</button>
       <span id="zoomLbl" class="lbl zl">100%</span>
@@ -111,6 +116,7 @@ class App {
         </svg>
         <div id="tip" class="tip"></div>
         <div id="banner" class="banner"></div>
+        <div id="toast" class="toast"></div>
         <div id="flowLegend" class="flowlegend"><span><i class="fl-cur"></i>current (+ → −)</span><span><i class="fl-sig"></i>logic signal</span></div>
         <div class="stagehint" id="stageHint">Drag empty space to pan · scroll to zoom · drag from a pin to draw a wire · <kbd>R</kbd> rotate · <kbd>Del</kbd> delete</div>
       </section>
@@ -154,6 +160,7 @@ class App {
       <h2>How to use PinSketch</h2>
       <div class="helpgrid">
         <div><h4>🧩 Add parts</h4><p>Drag a part from the left panel onto the canvas, or click it. Load a ready-made circuit from <b>Demos</b>.</p></div>
+        <div><h4>✏️ Edit mode</h4><p><b>ON</b>: place parts, draw wires, move, rotate and delete. <b>OFF</b> (play mode): only switches, buttons, DIP switches and knobs respond, so you can't break the circuit by accident. Toggle with the toolbar button or <kbd>E</kbd>.</p></div>
         <div><h4>🔌 Draw wires</h4><p>Press on a <b>pin</b> or a <b>breadboard hole</b> and drag to another one. Or click a pin, click empty spots to add bends, and click the target pin. <kbd>Esc</kbd> cancels.</p></div>
         <div><h4>✋ Move & edit</h4><p>Drag a part's body to move it. Select it to rotate (<kbd>R</kbd>), delete (<kbd>Del</kbd>), or edit its properties. Drag a selected wire's end handle to re-attach it.</p></div>
         <div><h4>👆 Interact</h4><p>Click switches, DIP sliders and logic inputs. Hold push buttons. Drag a potentiometer knob up or down.</p></div>
@@ -237,6 +244,8 @@ class App {
     $('#chkLevels').addEventListener('change', e => { this.showLevels = e.target.checked; this.renderWires(); });
     $('#chkFlow').addEventListener('change', e => { this.showFlow = e.target.checked; this._flowSig = null; this.renderFlow(); });
     $('#btnHelp').addEventListener('click', () => $('#help').classList.add('open'));
+    $('#btnEdit').addEventListener('click', () => this.setEdit(!this.edit));
+    this.setEdit(this.edit, true);
     $('#helpClose').addEventListener('click', () => $('#help').classList.remove('open'));
     $('#help').addEventListener('click', e => { if (e.target.id === 'help') $('#help').classList.remove('open'); });
     $('#btnLeft').addEventListener('click', () => { $('#leftPane').classList.toggle('open'); $('#rightPane').classList.remove('open'); });
@@ -317,6 +326,7 @@ class App {
       case 'rotate': this.rotateSel(); break;
       case 'delete': this.deleteSel(); break;
       case 'clear':
+        if (!this.needEdit()) return;
         if (!confirm('Remove all parts and wires?')) return;
         this.pushUndo(); this.stopAll(); this.circ.load({ comps: [], wires: [] });
         if (this.adv) this.circ.addComp('breadboard', 0, 0, { cols: 30 });
@@ -333,7 +343,7 @@ class App {
 
   setWireColor(col) {
     this.wireColor = col; this.markSwatch();
-    if (this.sel && this.sel.wire) { this.pushUndo(); this.sel.wire.color = col; this.renderWire(this.sel.wire); this.changed(); }
+    if (this.sel && this.sel.wire && this.edit) { this.pushUndo(); this.sel.wire.color = col; this.renderWire(this.sel.wire); this.changed(); }
   }
   markSwatch() { $$('.sw').forEach(s => s.classList.toggle('active', s.dataset.color === this.wireColor)); }
 
@@ -482,7 +492,7 @@ class App {
     if (leg) leg.style.display = h ? 'flex' : 'none';
   }
   renderHandles() {
-    const w = this.sel && this.sel.wire;
+    const w = this.edit && this.sel && this.sel.wire;
     if (!w) { this.layTop.querySelectorAll('.whandle').forEach(e => e.remove()); return; }
     this.layTop.querySelectorAll('.whandle').forEach(e => e.remove());
     const last = w.pts.length - 1;
@@ -493,19 +503,40 @@ class App {
     }
   }
 
+  /* ======================= edit mode ======================= */
+  setEdit(on, quiet) {
+    this.edit = !!on;
+    try { localStorage.setItem('pinsketch-edit', this.edit ? '1' : '0'); } catch (e) { /* ignore */ }
+    const b = $('#btnEdit');
+    if (b) { b.innerHTML = this.edit ? '✏️ Edit: <b>ON</b>' : '👆 Edit: <b>OFF</b>'; b.classList.toggle('on', this.edit); }
+    $('#stage').classList.toggle('editing', this.edit);
+    $('#leftPane').classList.toggle('locked', !this.edit);
+    const hint = $('#stageHint');
+    if (hint) hint.innerHTML = this.edit
+      ? 'EDIT MODE · drag parts from the palette · drag from a pin or hole to draw a wire · <kbd>R</kbd> rotate · <kbd>Del</kbd> delete · <kbd>E</kbd> to finish'
+      : 'PLAY MODE · click switches, hold buttons, drag knobs · drag empty space to pan · press <kbd>E</kbd> or ✏️ to edit the circuit';
+    if (!this.edit) { if (this.drag && this.drag.type === 'wire') this.cancelWire(); this.renderHandles(); }
+    if (!quiet) this.toast(this.edit ? '✏️ Edit mode ON: place parts and draw wires' : '👆 Edit mode OFF: only switches, buttons and knobs respond');
+    if (this.rtab === 'props') this.renderProps();
+  }
+  toast(msg) {
+    const t = $('#toast'); if (!t) return;
+    t.textContent = msg; t.classList.add('show');
+    clearTimeout(this._toastT); this._toastT = setTimeout(() => t.classList.remove('show'), 2200);
+  }
+  needEdit() { if (this.edit) return true; this.toast('Turn on ✏️ Edit mode (press E) to change the circuit'); return false; }
+  hasEdgeParts() { return this.circ.comps.some(c => PARTS[c.type].edge); }
+
   /* ======================= simulation loop ======================= */
   markDirty() { this.dirty = true; }
   solve() { this.solver.run(); this.dirty = false; this.needVis = true; }
   ensureSolved() { if (this.dirty) this.solve(); }
   frame() {
-    const now = performance.now();
-    for (const c of this.circ.comps) {
-      if (c.type !== 'clock') continue;
-      const per = 500 / (+c.props.hz || 1);
-      if (!c.st.next) c.st.next = now + per;
-      else if (now >= c.st.next) { c.st.v = !c.st.v; c.st.next = now + per; this.dirty = true; }
-    }
+    const now = performance.now(), S = this.solver;
+    const dt = this._lastT ? (now - this._lastT) / 1000 : 0.016; this._lastT = now;
+    for (const c of this.circ.comps) { const d = PARTS[c.type]; if (d.tick && d.tick(c, now, S)) this.dirty = true; }
     if (this.dirty) this.solve();
+    if (S.hasCaps() || S.av) { S.analogStep(dt); this.solve(); } // capacitors: advance real time
     if (this.needVis) this.refreshVisuals();
     requestAnimationFrame(() => this.frame());
   }
@@ -523,6 +554,7 @@ class App {
     if (S.shorts) msgs.push('⚠ Short circuit! A HIGH and a LOW are connected directly. Check the magenta/red wires.');
     if (S.oscillating) msgs.push('⚠ The circuit is oscillating (an output feeds back into itself).');
     for (const c of this.circ.comps) if (PARTS[c.type].pinNames && c.vis && !c.vis.pw && !msgs.some(m => m.includes('IC'))) msgs.push('ℹ An IC is not powered: connect its VCC pin to + and its GND pin to −.');
+    if (this.circ.comps.some(c => c.vis && c.vis.burnt)) msgs.push('💥 Too much voltage! A part has burnt out. Lower the battery voltage or use a part rated for it.');
     this.banner.innerHTML = msgs.map(m => `<div>${m}</div>`).join('');
     this.banner.style.display = msgs.length ? 'block' : 'none';
     if (this.hoverKey) this.showHoverInfo(this.hoverKey, true);
@@ -556,6 +588,16 @@ class App {
       this.drag = { type: 'act', comp, act: actEl.dataset.act, sx: e.clientX, sy: e.clientY };
       this.afterAct(comp, d.act ? d.act(comp, actEl.dataset.act, 'down', { dx: 0, dy: 0 }) : false);
       e.preventDefault();
+      return;
+    }
+    if (!this.edit) { // PLAY mode: only controls respond; clicks elsewhere select (to inspect) or pan
+      const pinEl2 = t.closest('.pin'), wEl2 = t.closest('.wire');
+      const target = comp || (pinEl2 && this.byId(pinEl2.parentNode.dataset.id));
+      if (wEl2) this.select({ wire: this.byId(wEl2.dataset.id) });
+      else if (target && !PARTS[target.type].isBoard) this.select({ comp: target });
+      else this.select(null);
+      this.drag = { type: 'pan', sx: e.clientX, sy: e.clientY, vx: this.view.x, vy: this.view.y, play: true };
+      this.svg.classList.add('panning');
       return;
     }
     const pinEl = t.closest('.pin');
@@ -763,6 +805,7 @@ class App {
     if ((e.ctrlKey || e.metaKey) && k.toLowerCase() === 'd') { e.preventDefault(); this.duplicateSel(); return; }
     if ((e.ctrlKey || e.metaKey) && k.toLowerCase() === 's') { e.preventDefault(); this.exportFile(); return; }
     if (k === 'Delete' || k === 'Backspace') { e.preventDefault(); this.deleteSel(); }
+    else if (k === 'e' || k === 'E') this.setEdit(!this.edit);
     else if (k === 'r' || k === 'R') this.rotateSel();
     else if (k === 'Escape') { if (this.drag && this.drag.type === 'wire') this.cancelWire(); else this.select(null); $('#help').classList.remove('open'); }
     else if (k === '+' || k === '=') this.zoomAt(1.2);
@@ -773,6 +816,7 @@ class App {
   /* ======================= editing ======================= */
   addPart(type, x, y) {
     const d = PARTS[type];
+    if (!this.edit) this.setEdit(true); // adding a part switches edit mode on
     this.pushUndo();
     const props = {};
     if (type === 'breadboard') props.cols = 30;
@@ -801,7 +845,7 @@ class App {
     if (s && s.comp && PARTS[s.comp.type].mcu && this.adv) { this.refreshBoardSel(s.comp.id); if (this.rtab === 'code') this.showCode(); }
   }
   deleteSel() {
-    const s = this.sel; if (!s) return;
+    const s = this.sel; if (!s || !this.needEdit()) return;
     this.pushUndo();
     const obj = s.comp || s.wire;
     if (s.comp && this.mcus.has(s.comp.id)) { this.mcus.get(s.comp.id).stop(); this.mcus.delete(s.comp.id); }
@@ -810,11 +854,11 @@ class App {
     if (s.comp && PARTS[s.comp.type].mcu) this.refreshBoardSel();
   }
   rotateSel() {
-    const c = this.sel && this.sel.comp; if (!c || PARTS[c.type].isBoard) return;
+    const c = this.sel && this.sel.comp; if (!c || PARTS[c.type].isBoard || !this.needEdit()) return;
     this.pushUndo(); c.rot = ((c.rot || 0) + 1) % 4; this.renderComp(c); this.dirty = true; this.changed();
   }
   duplicateSel() {
-    const c = this.sel && this.sel.comp; if (!c) return;
+    const c = this.sel && this.sel.comp; if (!c || !this.needEdit()) return;
     this.pushUndo();
     const n = this.circ.addComp(c.type, c.x + 2, c.y + 2, clone(c.props), c.rot);
     this.dirty = true; this.solve(); this.renderComp(n); this.select({ comp: n }); this.changed();
@@ -951,7 +995,8 @@ class App {
       else h += `<input type="text" value="${esc(v)}" data-prop="${p.key}" maxlength="40">`;
       h += '</div>';
     }
-    h += `<div class="btnrow">${d.isBoard ? '' : '<button class="tbtn" id="pRot">⟳ Rotate</button>'}<button class="tbtn" id="pDup">⧉ Duplicate</button><button class="tbtn danger" id="pDel">🗑 Delete</button></div>`;
+    h += this.edit ? `<div class="btnrow">${d.isBoard ? '' : '<button class="tbtn" id="pRot">⟳ Rotate</button>'}<button class="tbtn" id="pDup">⧉ Duplicate</button><button class="tbtn danger" id="pDel">🗑 Delete</button></div>`
+      : `<p class="small muted">👆 Play mode. Turn on <b>✏️ Edit mode</b> (E) to move, rotate or delete this part.</p>`;
     if (d.mcu) h += `<div class="btnrow"><button class="tbtn run" id="pRun">▶ Run</button><button class="tbtn stop" id="pStop">■ Stop</button><button class="tbtn" id="pCode">💻 Edit code</button></div>`;
     if (pinsOf(c).length && pinsOf(c).length <= 40) h += `<h4>Pins</h4><table class="pins" id="pinTable"></table>`;
     el.innerHTML = h;

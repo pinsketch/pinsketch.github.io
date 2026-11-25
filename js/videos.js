@@ -109,6 +109,51 @@ const VIDEOS = [
   "dur": "0:38"
  },
  {
+  "id": "b-volts",
+  "level": "beginner",
+  "num": 13,
+  "title": "Voltage: 3.3 V, 5 V, 12 V",
+  "sub": "Too little, just right, too much",
+  "desc": "The same 5 V bulb on 3.3 V, 5 V and 12 V: dim, bright and burnt out. Change battery voltage in Properties.",
+  "dur": "0:35"
+ },
+ {
+  "id": "b-cap",
+  "level": "beginner",
+  "num": 14,
+  "title": "The Capacitor",
+  "sub": "Storing energy",
+  "desc": "Charge a capacitor with a button, then watch it keep an LED lit as it slowly empties.",
+  "dur": "0:40"
+ },
+ {
+  "id": "b-rc",
+  "level": "beginner",
+  "num": 15,
+  "title": "RC Timer: Making a Delay",
+  "sub": "Resistor + capacitor = time",
+  "desc": "A resistor and a capacitor make a delay: the lamp turns on about 3 seconds after the switch.",
+  "dur": "0:41"
+ },
+ {
+  "id": "b-555",
+  "level": "beginner",
+  "num": 16,
+  "title": "The 555 Timer",
+  "sub": "A blinking LED",
+  "desc": "Build the famous NE555 blinker on a 9 V battery and change its speed with the capacitor.",
+  "dur": "0:41"
+ },
+ {
+  "id": "b-latch",
+  "level": "beginner",
+  "num": 17,
+  "title": "SR Latch: Memory",
+  "sub": "Two NOR gates that remember",
+  "desc": "Two NOR gates that remember: set and reset a 1-bit memory.",
+  "dur": "0:35"
+ },
+ {
   "id": "a-bb",
   "level": "advanced",
   "num": 1,
@@ -286,6 +331,87 @@ const VIDEOS = [
   "title": "ESP8266: Wi-Fi Message Board",
   "sub": "Web form → I2C LCD",
   "desc": "Send a message from a phone web form to an I2C LCD over Wi-Fi.",
+  "dur": "0:35"
+ },
+ {
+  "id": "a-555",
+  "level": "advanced",
+  "num": 21,
+  "title": "NE555 Astable Blinker",
+  "sub": "The classic 555 oscillator",
+  "desc": "The NE555 astable oscillator on a breadboard: wiring, ⅓ and ⅔ thresholds and the frequency formula.",
+  "dur": "0:42"
+ },
+ {
+  "id": "a-555mono",
+  "level": "advanced",
+  "num": 22,
+  "title": "NE555 One-Shot Timer",
+  "sub": "Monostable mode",
+  "desc": "A one-shot timer: one button press keeps the LED on for 1.1 × R × C seconds.",
+  "dur": "0:33"
+ },
+ {
+  "id": "a-4017",
+  "level": "advanced",
+  "num": 23,
+  "title": "555 + CD4017 LED Chaser",
+  "sub": "A running light",
+  "desc": "A 555 clock drives a CD4017 decade counter for a running LED light.",
+  "dur": "0:31"
+ },
+ {
+  "id": "a-counter",
+  "level": "advanced",
+  "num": 24,
+  "title": "74HC393 Binary Counter",
+  "sub": "A hardware counter",
+  "desc": "A 74HC393 counts 555 clock pulses in binary on four LEDs.",
+  "dur": "0:31"
+ },
+ {
+  "id": "a-crystal",
+  "level": "advanced",
+  "num": 25,
+  "title": "Crystal Timer: Exactly 1 Hz",
+  "sub": "32.768 kHz crystal + CD4060 + 74HC74",
+  "desc": "A 32.768 kHz watch crystal, a CD4060 and a 74HC74 make an exact 1 Hz timer.",
+  "dur": "0:42"
+ },
+ {
+  "id": "a-dff",
+  "level": "advanced",
+  "num": 26,
+  "title": "D Flip-Flop (74HC74)",
+  "sub": "Toggle with a button",
+  "desc": "The 74HC74 D flip-flop wired as a toggle: every clock press flips the LED.",
+  "dur": "0:34"
+ },
+ {
+  "id": "a-decoder",
+  "level": "advanced",
+  "num": 27,
+  "title": "74HC138 3-to-8 Decoder",
+  "sub": "Choose one of eight outputs",
+  "desc": "The 74HC138 picks one of eight active-LOW outputs from a 3-bit number.",
+  "dur": "0:36"
+ },
+ {
+  "id": "u-595",
+  "level": "advanced",
+  "num": 28,
+  "title": "Arduino + 74HC595 Shift Register",
+  "sub": "8 LEDs from 3 pins",
+  "desc": "Drive 8 LEDs from 3 Arduino pins with a 74HC595 and shiftOut().",
+  "dur": "0:34"
+ },
+ {
+  "id": "u-cap",
+  "level": "advanced",
+  "num": 29,
+  "title": "Arduino: Measuring a Capacitor",
+  "sub": "RC time constant with analogRead",
+  "desc": "Charge a capacitor from an Arduino pin and measure its time constant with analogRead.",
   "dur": "0:35"
  }
 ];

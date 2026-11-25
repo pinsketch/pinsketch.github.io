@@ -33,6 +33,20 @@ const DESC = {
   'e-blink': 'Meet the NodeMCU: D-pin labels vs GPIO numbers, and the active-LOW built-in LED.',
   'e-sensor': 'Show a live analog reading (A0) as a number and a bar on a web page.',
   'e-lcd': 'Send a message from a phone web form to an I2C LCD over Wi-Fi.',
+  'b-volts': 'The same 5 V bulb on 3.3 V, 5 V and 12 V: dim, bright and burnt out. Change battery voltage in Properties.',
+  'b-cap': 'Charge a capacitor with a button, then watch it keep an LED lit as it slowly empties.',
+  'b-rc': 'A resistor and a capacitor make a delay: the lamp turns on about 3 seconds after the switch.',
+  'b-555': 'Build the famous NE555 blinker on a 9 V battery and change its speed with the capacitor.',
+  'b-latch': 'Two NOR gates that remember: set and reset a 1-bit memory.',
+  'a-555': 'The NE555 astable oscillator on a breadboard: wiring, ⅓ and ⅔ thresholds and the frequency formula.',
+  'a-555mono': 'A one-shot timer: one button press keeps the LED on for 1.1 × R × C seconds.',
+  'a-4017': 'A 555 clock drives a CD4017 decade counter for a running LED light.',
+  'a-counter': 'A 74HC393 counts 555 clock pulses in binary on four LEDs.',
+  'a-crystal': 'A 32.768 kHz watch crystal, a CD4060 and a 74HC74 make an exact 1 Hz timer.',
+  'a-dff': 'The 74HC74 D flip-flop wired as a toggle: every clock press flips the LED.',
+  'a-decoder': 'The 74HC138 picks one of eight active-LOW outputs from a 3-bit number.',
+  'u-595': 'Drive 8 LEDs from 3 Arduino pins with a 74HC595 and shiftOut().',
+  'u-cap': 'Charge a capacitor from an Arduino pin and measure its time constant with analogRead.',
 };
 const VDIR = process.env.VDIR || path.join(__dirname, '..', '..', 'videos');
 const FF = process.env.FFMPEG || 'ffmpeg';
